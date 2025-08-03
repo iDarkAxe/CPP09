@@ -3,8 +3,9 @@ date | value
 2011-01-03 | 2
 2011-01-03 | 1
 2011-01-03 | 1.2
+# Differences from subject.pdf as subject uses lower near date and not nearest date
 2011-01-09 | 1
 2012-01-11 | -1
-2001-42-42
+2001-42-421
 2012-01-11 | 1
 2012-01-11 | 2147483647

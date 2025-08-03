@@ -19,6 +19,7 @@ public:
 	void printPair(const std::string &date);
 	void printAll() const;
 	void loadDataFromFile(std::string filename);
+	const_iterator findNearest(const std::string &date) const;
 
 	class DatabaseNotFoundException : public std::exception
 	{

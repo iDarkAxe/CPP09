@@ -2,6 +2,11 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <limits>
+
+#ifndef CUSTOM_ERROR_MESSAGE
+#define CUSTOM_ERROR_MESSAGE 0
+#endif
 
 /* Function prototypes for additional tests */
 int evaluate_args(int argc, char **argv);
@@ -70,31 +75,116 @@ int evaluate_args(int argc, char **argv)
 	return (1);
 }
 
-bool isLineOK(const std::string &line)
+bool isdigit_inrange(std::string str, size_t start, size_t end)
 {
+	if (str.empty() || start >= str.size() || end > str.size() || start >= end)
+		return false;
+	for (size_t i = start; i < end; ++i)
+	{
+		if (!isdigit(str[i]))
+			return false;
+	}
+	return true;
+}
+
+bool isDateValid(int year, int month, int day)
+{
+	if (year < 2009 || month < 1 || month > 12 || day < 1 || day > 31)
+		return false;
+	if (year == 2009 && month == 1 && day < 2)
+		return false;
+	if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
+		return false;
+	if (month == 2)
+	{
+		if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) // Leap year
+		{
+			if (day <= 29)
+				return true;
+			else
+				return false;
+		}
+		else if (day > 28)
+			return false;
+	}
+	return true;
+}
+
+bool isLineOK(const std::string &line, float &priceValue)
+{
+	if (line.size() >= 1 && line[0] == '#')
+		return false;
 	if (line.size() < minimalSizeOfDataPrice || line.size() > maximalSizeOfDataPrice)
 	{
-		std::cout << "Error: bad input => " << line << std::endl;
+		if (CUSTOM_ERROR_MESSAGE)
+			std::cout << "Error: line is too small or too big => " << line << std::endl;
+		else
+			std::cout << "Error: bad input => " << line << std::endl;
 		return false;
 	}
-	// Check date format : YYYY-MM-DD, YYYY is 4 digits, MM is 2 digits, DD is 2 digits, all positive, dash-separated, MM is between 01-12 and DD is between 01-31
-	// Check separator : '|' at position 10
+	if (line[10] != ' ' || line[11] != '|' || line[12] != ' ')
+	{
+		if (CUSTOM_ERROR_MESSAGE)
+			std::cout << "Error: separator badly placed or missing spaces => " << line << std::endl;
+		else
+			std::cout << "Error: bad input => " << line << std::endl;
+		return false;
+	}
+	if (!isdigit_inrange(line, 0, 4) ||	!isdigit_inrange(line, 5, 7) ||	!isdigit_inrange(line, 8, 10))
+	{
+		if (CUSTOM_ERROR_MESSAGE)
+			std::cout << "Error: Date format is not YYYY-MM-DD => " << line << std::endl;
+		else
+			std::cout << "Error: bad input => " << line << std::endl;
+		return false;
+	}
+{
+	int year, month, day;
+	year = atoi(line.substr(0, 4).c_str());
+	month = atoi(line.substr(5, 2).c_str());
+	day = atoi(line.substr(8, 2).c_str());
+	if (!isDateValid(year, month, day))
+	{
+		if (CUSTOM_ERROR_MESSAGE)
+			std::cout << "Error: Date is not valid => " << line << std::endl;
+		else
+			std::cout << "Error: bad input => " << line << std::endl;
+		return false;
+	}
+}
+	if (line[4] != '-' || line[7] != '-')
+	{
+		if (CUSTOM_ERROR_MESSAGE)
+			std::cout << "Error: bad date format => " << line << std::endl;
+		else
+			std::cout << "Error: bad input => " << line << std::endl;
+		return false;
+	}
+	priceValue = atof(line.substr(13).c_str());
+	if (priceValue < 0)
+	{
+		std::cout << "Error: not a positive number." << std::endl;
+		return false;
+	}
+	if (priceValue > 1000)
+	{
+		std::cout << "Error: too large a number." << std::endl;
+		return false;
+	}
 	// Check price format : only positive, int, float, or double
 	return true;
 }
 
 void makeCalculation(const BitcoinExchange &btc, const std::string &date, float price)
 {
-	BitcoinExchange::const_iterator it = btc.find(date);
+	BitcoinExchange::const_iterator it = btc.findNearest(date);
 	if (it != btc.end())
 	{
 		std::cout << date << " => " << price << " = " << price * it->second << std::endl;
-		// std::cout << "Date: " << it->first << ", Price: " << it->second << std::endl;
 	}
 	else
 	{
 		std::cout << "Error: date not found => " << date << std::endl;
-		// std::cout << "Error: not found need to search after or before => " << date << std::endl;
 	}
 }
 
@@ -106,21 +196,9 @@ void compareFiles(const BitcoinExchange &btc, std::ifstream &file)
 
 	for (std::string line; getline(file, line);)
 	{
-		if (!isLineOK(line))
+		if (!isLineOK(line, priceValue))
 			continue;
 		date = line.substr(0, 10);
-		price = line.substr(13);
-		priceValue = atof(price.c_str());
-		if (priceValue < 0)
-		{
-			std::cout << "Error: not a positive number." << std::endl;
-			continue;
-		}
-		if (priceValue > 1000)
-		{
-			std::cout << "Error: too large a number." << std::endl;
-			continue;
-		}
 		makeCalculation(btc, date, priceValue);
 	}
 }

@@ -1,0 +1,17 @@
+date | value
+# 41 days in a month
+2011-01-41 | 15
+# month only 01-12
+2011-13-13 | 15
+# month only 01-12
+2011-00-13 | 15
+# before creation of bitcoin (2009-01-03)
+2001-01-11 | 15
+# Tricky one as 31 of June doesn't exist
+2011-06-31 | 15
+# Not only numbers
+20a1-08-30 | 15
+# O in place of a 0
+2O11-08-30 | 15
+# I in place of a 1
+20I1-08-30 | 15

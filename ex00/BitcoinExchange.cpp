@@ -94,6 +94,29 @@ void BitcoinExchange::loadDataFromFile(std::string filename)
 	}
 }
 
+BitcoinExchange::const_iterator BitcoinExchange::findNearest(const std::string &date) const
+{
+    const_iterator it = this->lower_bound(date);
+    if (it != this->end() && it->first == date) {
+        return it;
+    }
+
+    if (it == this->end()) {
+        return --it;
+    }
+
+    if (it == this->begin()) {
+        return it;
+    }
+    const_iterator prev_it = it;
+	--prev_it;
+    if ((date.compare(prev_it->first)) <= (it->first.compare(date))) {
+        return prev_it;
+    } else {
+        return it;
+    }
+}
+
 const char * BitcoinExchange::DatabaseNotFoundException::what() const throw()
 {
 	return "Database file not found";
