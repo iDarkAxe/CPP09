@@ -1,0 +1,11 @@
+**/a.out
+**/lib/*
+**/*.o
+**/*.d
+**/.obj/
+.vscode/settings.json
+
+ex00/btc
+ex01/RPN
+ex02/PmergeMe
+data.csv
