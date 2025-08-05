@@ -22,8 +22,9 @@ int main(int argc, char **argv)
 		if (arv_str.empty())
 			throw RPN::ArgumentEmptyException();
 		rpn.store(arv_str, delimitor);
-		rpn.printAll();
 		double result = rpn.calculate();
+		std::cout << result << std::endl;
+		result = rpn.calculate();
 		std::cout << result << std::endl;
 	}
 	catch(const std::exception& e)

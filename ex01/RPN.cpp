@@ -1,6 +1,7 @@
 #include "RPN.hpp"
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 
 RPN::RPN()
 {
@@ -24,12 +25,40 @@ RPN &RPN::operator=(const RPN &other)
 	return *this;
 }
 
+template <>
+std::string RPN::getAndPop<std::string>(void)
+{
+	if (fifo.empty())
+	{
+		if (MAKE_UNAUTORIZED_ACCESS_THROW)
+			throw UseOfEmptyContainerException();
+		return "";
+	}
+	std::string value = fifo.front();
+	fifo.pop();
+	return value;
+}
+
+template <>
+double RPN::getAndPop<double>(void)
+{
+	if (result.empty())
+	{
+		if (MAKE_UNAUTORIZED_ACCESS_THROW)
+			throw UseOfEmptyContainerException();
+		return 0;
+	}
+	double value = result.top();
+	result.pop();
+	return value;
+}
+
 /**
  * @brief print All the strings stored in queue
  * Crazy slow as it needs to unroll the queue to print it, adding it temporarly in another queue and 
  * 
  */
-void RPN::printAll(void)
+void RPN::printAllFifo(void)
 {
 	std::queue<std::string> backup = this->fifo;
 
@@ -43,15 +72,32 @@ void RPN::printAll(void)
 	fifo = backup;
 }
 
+/**
+ * @brief print All the strings stored in queue
+ * Crazy slow as it needs to unroll the queue to print it, adding it temporarly in another queue and 
+ * 
+ */
+void RPN::printAllResult(void)
+{
+	std::stack<double> backup = this->result;
+
+	size_t it = 0;
+	while (this->result.size() != 0)
+	{
+		std::cout << "it[" << it << "]: '" << this->result.top() << "'" << std::endl;
+		this->result.pop();
+		it++;
+	}
+	this->result = backup;
+}
+
+
 uint8_t RPN::checkArguments(std::string& item, char sep)
 {
 	size_t item_len = 0;
 
 	if (item.empty() || item.find(sep) != std::string::npos || (item.size() == 1 && item[0] == '\''))
-	{
 		return (1);
-		// continue;
-	}
 	item_len = item.size();
 	if (!ENABLE_MULTIPLE_DIGITS && item_len > 1)
 	{
@@ -73,6 +119,12 @@ uint8_t RPN::checkArguments(std::string& item, char sep)
 	return (0);
 }
 
+/**
+ * @brief Store at the end of the fifo the input
+ * 
+ * @param input input
+ * @param separator list of characters to separate the inputs
+ */
 void RPN::store(std::string& input, std::string& separator)
 {
 	(void)input;
@@ -81,12 +133,6 @@ void RPN::store(std::string& input, std::string& separator)
 
 	if (input.empty() || sep_len == 0)
 		throw ArgumentEmptyException();
-
-	// if (input.find(separator) == std::string::npos)
-	// {
-	// 	this->fifo.push(input);
-	// 	return;
-	// }
 
     std::stringstream ss (input);
     std::string item;
@@ -100,81 +146,61 @@ void RPN::store(std::string& input, std::string& separator)
 		}
 	}
 }
-#include <cstdlib>
+
+bool RPN::isNumber(std::string& token)
+{
+	for (size_t i = 0; token[i]; i++)
+	{
+		if (!isdigit(token[i]))
+			return (false);
+	}
+	return (true);
+}
+
+bool RPN::isOperator(std::string& token)
+{
+	if (token == "+" || token == "-" || token == "*" || token == "/")
+		return (true);
+	return (false);
+}
+
+double RPN::makeSimpleCalc(double argLeft, std::string& sign, double argRight)
+{
+	if (sign == "+")
+		return (argLeft + argRight);
+	if (sign == "-")
+		return (argLeft - argRight);
+	if (sign == "*")
+		return (argLeft * argRight);
+	if (sign == "/")
+		return (argLeft / argRight);
+	else
+		throw;
+}
+
 double RPN::calculate(void)
 {
 	std::queue<std::string> backup = this->fifo;
-	std::string sign;
-	double argLeft;
-	double argRight;
-	// double result = 0;
+	std::string token;
+	double argLeft, argRight;
+	double currentResult;
 
-	std::ostringstream strs;
-
-	size_t it = 0;
-	if (this->fifo.size() < 3)
-		throw NumberOfArgumentTooLowException();
-	argRight = strtod(this->fifo.front().c_str(), NULL);
-	this->fifo.pop();
-	argLeft = strtod(this->fifo.front().c_str(), NULL);
-	this->fifo.pop();
-
-	sign = this->fifo.front();
-	this->fifo.pop();
-
-	std::cout << "sign " << sign << " argLeft " << argLeft << " argRigth" << argRight << std::endl;
-	if (sign == "+")
-		argLeft = (argLeft + argRight);
-	else if (sign == "-")
-		argLeft = (argLeft - argRight);
-	else if (sign == "*")
-		argLeft = (argLeft * argRight);
-	else if (sign == "/")
-		argLeft = (argLeft / argRight);
-	else
-		throw SignDontExistException();
-	std::cout << "curr res: " << strs.str() << std::endl;
-	printAll();
-	while (this->fifo.size() != 0)
+	while (!this->fifo.empty()) 
 	{
-		argRight = strtod(this->fifo.front().c_str(), NULL);
-		this->fifo.pop();
-		sign = this->fifo.front();
-		this->fifo.pop();
-
-		std::cout << "sign " << sign << " argLeft " << argLeft << " argRigth" << argRight << std::endl;
-		if (sign == "+")
-			argLeft = (argLeft + argRight);
-		else if (sign == "-")
-			argLeft = (argLeft - argRight);
-		else if (sign == "*")
-			argLeft = (argLeft * argRight);
-		else if (sign == "/")
-			argLeft = (argLeft / argRight);
-		else
-			throw SignDontExistException();
-		std::cout << "curr res: " << strs.str() << std::endl;
-		it++;
+		token = getAndPop<std::string>();
+		if (isNumber(token))
+			this->result.push(strtod(token.c_str(), NULL));
+		else if (isOperator(token))
+		{
+			argRight = getAndPop<double>();
+			argLeft = getAndPop<double>();
+			currentResult = makeSimpleCalc(argLeft, token, argRight);
+			this->result.push(currentResult);
+		}
 	}
 	fifo = backup;
-	return (argLeft);
+	return (currentResult);
 }
-
-/* 
-while (!queue.empty()) {
-    token = queue.front();
-    queue.pop();
-    
-    if (isNumber(token)) {
-        stack.push(token);
-    } else if (isOperator(token)) {
-        b = stack.top(); stack.pop();
-        a = stack.top(); stack.pop();
-        result = calculate(a, token, b);
-        stack.push(result);
-    }
-} 
-*/
 
 const char* RPN::ArgumentEmptyException::what() const throw()
 {
@@ -201,65 +227,7 @@ const char* RPN::NumberOfArgumentTooLowException::what() const throw()
 	return "It needs at least 3 argument to work";
 }
 
-/* 
-Work Pretty good for really basic RPN.
-It will work for "8 9 * 9 - 9 - 9 - 4 - 1 +" but not for "3 10 5 +" 
-*/
-/* 
-double RPN::calculate(void)
+const char* RPN::UseOfEmptyContainerException::what() const throw()
 {
-	std::queue<std::string> backup = this->fifo;
-	std::string sign;
-	double argLeft;
-	double argRight;
-
-	std::ostringstream strs;
-
-	size_t it = 0;
-	if (this->fifo.size() < 3)
-		throw NumberOfArgumentTooLowException();
-	argRight = strtod(this->fifo.front().c_str(), NULL);
-	this->fifo.pop();
-	argLeft = strtod(this->fifo.front().c_str(), NULL);
-	this->fifo.pop();
-
-	sign = this->fifo.front();
-	this->fifo.pop();
-
-	std::cout << "sign " << sign << " argLeft " << argLeft << " argRigth" << argRight << std::endl;
-	if (sign == "+")
-		argLeft = (argLeft + argRight);
-	else if (sign == "-")
-		argLeft = (argLeft - argRight);
-	else if (sign == "*")
-		argLeft = (argLeft * argRight);
-	else if (sign == "/")
-		argLeft = (argLeft / argRight);
-	else
-		throw SignDontExistException();
-	std::cout << "curr res: " << strs.str() << std::endl;
-	printAll();
-	while (this->fifo.size() != 0)
-	{
-		argRight = strtod(this->fifo.front().c_str(), NULL);
-		this->fifo.pop();
-		sign = this->fifo.front();
-		this->fifo.pop();
-
-		std::cout << "sign " << sign << " argLeft " << argLeft << " argRigth" << argRight << std::endl;
-		if (sign == "+")
-			argLeft = (argLeft + argRight);
-		else if (sign == "-")
-			argLeft = (argLeft - argRight);
-		else if (sign == "*")
-			argLeft = (argLeft * argRight);
-		else if (sign == "/")
-			argLeft = (argLeft / argRight);
-		else
-			throw SignDontExistException();
-		std::cout << "curr res: " << strs.str() << std::endl;
-		it++;
-	}
-	fifo = backup;
-	return (argLeft);
-} */
+	return "This container is already empty !";
+}
