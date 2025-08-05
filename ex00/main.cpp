@@ -112,9 +112,12 @@ bool isDateValid(int year, int month, int day)
 
 bool isLineOK(const std::string &line, float &priceValue)
 {
-	if (line.size() >= 1 && line[0] == '#')
+	size_t line_len;
+
+	line_len = line.size();
+	if (line_len >= 1 && line[0] == '#')
 		return false;
-	if (line.size() < minimalSizeOfDataPrice || line.size() > maximalSizeOfDataPrice)
+	if (line_len < minimalSizeOfDataPrice || line_len > maximalSizeOfDataPrice)
 	{
 		if (CUSTOM_ERROR_MESSAGE)
 			std::cout << "Error: line is too small or too big => " << line << std::endl;
@@ -171,7 +174,6 @@ bool isLineOK(const std::string &line, float &priceValue)
 		std::cout << "Error: too large a number." << std::endl;
 		return false;
 	}
-	// Check price format : only positive, int, float, or double
 	return true;
 }
 
