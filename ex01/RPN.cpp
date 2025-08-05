@@ -147,6 +147,17 @@ void RPN::store(std::string& input, std::string& separator)
 	}
 }
 
+#if ENABLE_DECIMALS == 1
+bool RPN::isNumber(std::string& token)
+{
+	for (size_t i = 0; token[i]; i++)
+	{
+		if (!isdigit(token[i]) && token[i] != '.' && token[i] != 'f')
+			return (false);
+	}
+	return (true);
+}
+#else
 bool RPN::isNumber(std::string& token)
 {
 	for (size_t i = 0; token[i]; i++)
@@ -156,6 +167,7 @@ bool RPN::isNumber(std::string& token)
 	}
 	return (true);
 }
+#endif
 
 bool RPN::isOperator(std::string& token)
 {
@@ -178,6 +190,13 @@ double RPN::makeSimpleCalc(double argLeft, std::string& sign, double argRight)
 		throw;
 }
 
+/**
+ * @brief Calculate what's in the queue
+ * this->result still handles the currentResult at the end, 
+ * don't forget to trash or next calculate will use it
+ * 
+ * @return double 
+ */
 double RPN::calculate(void)
 {
 	std::queue<std::string> backup = this->fifo;
@@ -198,8 +217,29 @@ double RPN::calculate(void)
 			this->result.push(currentResult);
 		}
 	}
+	if (result.size() != 1)
+	{
+		if (ENABLE_DEBUG)
+		{
+			std::cout << "Fifo: " << std::endl;
+			printAllFifo();
+			std::cout << "Result: " << std::endl;
+			printAllResult();
+		}
+		throw ContainerNotCompletelyEmptiedException();
+	}
 	fifo = backup;
 	return (currentResult);
+}
+
+void RPN::trashFifo(void)
+{
+	fifo = std::queue<std::string>();
+}
+
+void RPN::trashResult(void)
+{
+	result = std::stack<double>();
 }
 
 const char* RPN::ArgumentEmptyException::what() const throw()
@@ -230,4 +270,9 @@ const char* RPN::NumberOfArgumentTooLowException::what() const throw()
 const char* RPN::UseOfEmptyContainerException::what() const throw()
 {
 	return "This container is already empty !";
+}
+
+const char* RPN::ContainerNotCompletelyEmptiedException::what() const throw()
+{
+	return "This container still has content ! (maybe needs an operator ?)";
 }

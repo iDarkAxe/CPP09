@@ -7,7 +7,13 @@
 #include <stdint.h>
 
 #ifndef ENABLE_MULTIPLE_DIGITS
-#define ENABLE_MULTIPLE_DIGITS 0
+#define ENABLE_MULTIPLE_DIGITS 1
+#endif
+
+#if ENABLE_MULTIPLE_DIGITS == 1
+# ifndef ENABLE_DECIMALS
+# define ENABLE_DECIMALS 1
+# endif
 #endif
 
 #ifndef MAKE_UNAUTORIZED_ACCESS_THROW
@@ -37,12 +43,14 @@ public:
 	RPN &operator=(const RPN &other);
 
 	template <typename T>
-	T getAndPop(void);  // Déclaration générique pour les deux façons
+	T getAndPop(void);
 
 	void printAllFifo(void);
 	void printAllResult(void);
 	void store(std::string &input, std::string &separator);
 	double calculate(void);
+	void trashFifo(void);
+	void trashResult(void);
 
 	class ArgumentEmptyException : public std::exception
 	{
@@ -70,6 +78,11 @@ public:
 			const char *what() const throw();
 	};
 	class UseOfEmptyContainerException : public std::exception
+	{
+		public:
+			const char *what() const throw();
+	};
+	class ContainerNotCompletelyEmptiedException : public std::exception
 	{
 		public:
 			const char *what() const throw();
