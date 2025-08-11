@@ -18,16 +18,20 @@ int main(int argc, const char **argv)
 			std::cout << "Error\n";
 		return (0);
 	}
-	PmergeMe pmergme(argc - 1);
+	PmergeMe pmergeme(argc - 1);
 	try 
 	{
-		pmergme.storeInVect(&argv[1]);
-		// pmergme.storeInListFromVect();
+		pmergeme.storeInVect(&argv[1]);
+		pmergeme.storeInListFromVect();
+		pmergeme.sort_FJMI_vect();
+		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << 0.00031 << " us" << std::endl;
+		pmergeme.sort_FJMI_vect();
+		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::list : " << 0.00031 << " us" << std::endl;
 		// std::cout << "Vect :" << std::endl;
-		// pmergme.printAllVect();
+		// pmergeme.printAllVect();
 		// std::cout << "\n";
 		// std::cout << "List :" << std::endl;
-		// pmergme.printAllList();
+		// pmergeme.printAllList();
 	}
 	catch(const std::exception& e)
 	{

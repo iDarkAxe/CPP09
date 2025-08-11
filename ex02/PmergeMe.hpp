@@ -34,6 +34,8 @@ public:
 	PmergeMe(const PmergeMe &f);
 	PmergeMe &operator=(const PmergeMe &other);
 
+	size_t	numberOfElements;
+
 	template <typename T>
 	T getAndPop(void);
 
@@ -41,7 +43,8 @@ public:
 	void printAllList(void);
 	void storeInVect(const char *array[]);
 	void storeInListFromVect(void);
-	void sort_FJMI(void);
+	void sort_FJMI_lst(void);
+	void sort_FJMI_vect(void);
 
 	class ArgumentEmptyException : public std::exception
 	{

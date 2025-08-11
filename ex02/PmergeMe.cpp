@@ -32,6 +32,16 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 	return *this;
 }
 
+template <typename T>
+void printAll(const T& container)
+{
+	for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
+	{
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+}
+
 void PmergeMe::printAllVect(void)
 {
 	for(std::vector<unsigned int>::iterator it = this->vect.begin(); it != vect.end(); it++)
@@ -69,7 +79,7 @@ void PmergeMe::storeInVect(const char *array[])
 		if (item.find_first_not_of("0123456789+") != std::string::npos)
 			throw ArgumentInvalidException();
 		value = strtoul(array[i], &pointer, 10);
-		if (&pointer == &array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' ' ) || value < 0)
+		if (&pointer == &array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' ' ))
 		{
 			if (DEBUG_LEVEL >= DEBUG)
 			{
@@ -78,7 +88,7 @@ void PmergeMe::storeInVect(const char *array[])
 			}
 			throw ArgumentInvalidException();
 		}
-		if (!duplicate_test.insert(value).second)
+		if (!duplicate_test.insert(static_cast<unsigned int>(value)).second)
 		{
 			if (DEBUG_LEVEL >= INFO)
 			{
@@ -87,10 +97,13 @@ void PmergeMe::storeInVect(const char *array[])
 			if (THROW_ERROR_IF_DUPLICATE)
 				throw DuplicateException();
 		}
-		vect.push_back(value);
+		vect.push_back(static_cast<unsigned int>(value));
 	}
-	std::cout << "Vector capacity now: " << vect.capacity() << std::endl;
-	std::cout << "Vector size now: " << vect.size() << std::endl;
+	numberOfElements = i;
+	std::cout << "Before : ";
+	printAll(vect);
+	std::cout << "After :  ";
+	printAll(duplicate_test);
 }
 
 void PmergeMe::storeInListFromVect(void)
@@ -98,9 +111,16 @@ void PmergeMe::storeInListFromVect(void)
 	lst.assign(vect.begin(), vect.end());
 }
 
-void PmergeMe::sort_FJMI(void)
+void PmergeMe::sort_FJMI_vect(void)
 {
-	std::cout << "Trying to sort" << std::endl;
+	std::cout << "Trying to sort vector" << std::endl;
+	
+}
+
+void PmergeMe::sort_FJMI_lst(void)
+{
+	std::cout << "Trying to sort list" << std::endl;
+	
 }
 
 const char* PmergeMe::ArgumentEmptyException::what() const throw()
