@@ -5,6 +5,7 @@
 #include <list>
 #include <string>
 #include <stdint.h>
+#include <iostream>
 
 enum debug_level
 {
@@ -23,9 +24,17 @@ enum debug_level
 
 class PmergeMe
 {
+//= Variables =//
 private:
 	std::vector<unsigned int> vect;
 	std::list<unsigned int> lst;
+
+public:
+	size_t	numberOfElements;
+
+//= Methods =//
+private:
+	std::vector<size_t> generateJacobsthalSequence(size_t n);
 
 public:
 	PmergeMe();
@@ -34,18 +43,26 @@ public:
 	PmergeMe(const PmergeMe &f);
 	PmergeMe &operator=(const PmergeMe &other);
 
-	size_t	numberOfElements;
-
 	template <typename T>
-	T getAndPop(void);
-
-	void printAllVect(void);
-	void printAllList(void);
+	static void printAll(const T& container, const char *separator = " ")
+	{
+		for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
+		{
+			std::cout << *it << separator;
+		}
+		std::cout << std::endl;
+	}
+	std::vector<unsigned int>& getVector(void);
+	std::list<unsigned int>& getList(void);
+	void clear(void);
+	void printAllVect(void) const;
+	void printAllList(void) const;
 	void storeInVect(const char *array[]);
 	void storeInListFromVect(void);
 	void sort_FJMI_lst(void);
 	void sort_FJMI_vect(void);
 
+	//= Exceptions =//
 	class ArgumentEmptyException : public std::exception
 	{
 		public:

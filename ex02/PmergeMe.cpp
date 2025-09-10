@@ -28,41 +28,54 @@ PmergeMe::PmergeMe(const PmergeMe &f)
 PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 {
 	if (this != &other)
+	{
+		this->vect = other.vect;
+		this->lst = other.lst;
 		return *this;
+	}
 	return *this;
 }
 
-template <typename T>
-void printAll(const T& container)
+std::vector<unsigned int>& PmergeMe::getVector(void)
 {
-	for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
-	{
-		std::cout << *it << " ";
-	}
-	std::cout << std::endl;
+	return this->vect;
 }
 
-void PmergeMe::printAllVect(void)
+std::list<unsigned int>& PmergeMe::getList(void)
 {
-	for(std::vector<unsigned int>::iterator it = this->vect.begin(); it != vect.end(); it++)
+	return this->lst;
+}
+
+void PmergeMe::clear(void)
+{
+	this->vect.clear();
+	this->lst.clear();
+}
+
+void PmergeMe::printAllVect(void) const
+{
+	size_t index = 0;
+	for (std::vector<unsigned int>::const_iterator it = this->vect.begin(); it != vect.end(); it++)
 	{
-		std::cout << "it " << *it << std::endl;
+		std::cout << "it[" << index << "] = " << *it << std::endl;
+		index++;
 	}
 }
 
-void PmergeMe::printAllList(void)
+void PmergeMe::printAllList(void) const
 {
-	for(std::list<unsigned int>::iterator it = this->lst.begin(); it != lst.end(); it++)
+	size_t index = 0;
+	for (std::list<unsigned int>::const_iterator it = this->lst.begin(); it != lst.end(); it++)
 	{
-		std::cout << "it " << *it << std::endl;
+		std::cout << "it[" << index << "] = " << *it << std::endl;
+		index++;
 	}
 }
 
 /**
  * @brief Store in the two container at once
  * 
- * @param input input
- * @param separator list of characters to separate the inputs
+ * @param array array of strings
  */
 void PmergeMe::storeInVect(const char *array[])
 {
@@ -72,10 +85,13 @@ void PmergeMe::storeInVect(const char *array[])
 	std::string item;
 	char *pointer = NULL;
 	unsigned int value;
-
-	for (size_t i = 0; array[i]; i++)
+	
+	size_t i;
+	for (i = 0; array[i]; i++)
 	{
 		item = array[i];
+		if (item.empty())
+			throw ArgumentEmptyException();
 		if (item.find_first_not_of("0123456789+") != std::string::npos)
 			throw ArgumentInvalidException();
 		value = strtoul(array[i], &pointer, 10);
@@ -106,6 +122,31 @@ void PmergeMe::storeInVect(const char *array[])
 	printAll(duplicate_test);
 }
 
+std::vector<size_t> PmergeMe::generateJacobsthalSequence(size_t n) 
+{
+	std::vector<size_t> jacobsthal;
+	if (n == 0)
+		return jacobsthal;
+	jacobsthal.push_back(1);
+	jacobsthal.push_back(1);
+	if (n == 1)
+		return jacobsthal;
+	jacobsthal.push_back(3);
+	size_t prev1 = 1;
+	size_t prev2 = 3;
+	size_t next;
+	while (true)
+	{
+		next = prev2 + 2 * prev1;
+		if (next > n)
+			break;
+		jacobsthal.push_back(next);
+		prev1 = prev2;
+		prev2 = next;
+	}
+	return jacobsthal;
+}
+
 void PmergeMe::storeInListFromVect(void)
 {
 	lst.assign(vect.begin(), vect.end());
@@ -113,13 +154,22 @@ void PmergeMe::storeInListFromVect(void)
 
 void PmergeMe::sort_FJMI_vect(void)
 {
-	std::cout << "Trying to sort vector" << std::endl;
-	
+	unsigned int odd_element;
+	bool has_odd_Elements = false;
+	if (this->numberOfElements % 2 == 1)
+	{
+		has_odd_Elements = true;
+		odd_element = this->vect.back();
+		this->vect.pop_back();
+	}
+	// while (this->vect.size() > 2)
+	// {
+	// 	this->vect.front();
+	// }
 }
 
 void PmergeMe::sort_FJMI_lst(void)
 {
-	std::cout << "Trying to sort list" << std::endl;
 	
 }
 
