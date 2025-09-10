@@ -42,6 +42,11 @@ int main(int argc, const char **argv)
 		gettimeofday(&end_tv, NULL);
 		microseconds = delta_timeval(start_tv, end_tv);
 		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::list : " << microseconds << " us" << std::endl;
+		if (DEBUG_LEVEL >= INFO)
+		{
+			std::cout << "Nbr of Comparisons :" << std::endl;
+			PmergeMe::printAll(pmergeme.comparison_count);
+		}
 		if (DEBUG_LEVEL >= DEBUG)
 		{
 			std::cout << "Vect :" << std::endl;

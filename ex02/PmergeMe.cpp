@@ -154,23 +154,44 @@ void PmergeMe::storeInListFromVect(void)
 
 void PmergeMe::sort_FJMI_vect(void)
 {
-	unsigned int odd_element;
-	bool has_odd_Elements = false;
+	size_t comparison_count = 0;
+
+	//= Phase 1 =//
+	// Group the elements into pairs and leave the last if odd number of elements.
+	unsigned int oddElement = 0;
+	bool hasOddElement = false;
+
 	if (this->numberOfElements % 2 == 1)
 	{
-		has_odd_Elements = true;
-		odd_element = this->vect.back();
+		hasOddElement = true;
+		oddElement = this->vect.back();
 		this->vect.pop_back();
 	}
-	// while (this->vect.size() > 2)
-	// {
-	// 	this->vect.front();
-	// }
+	std::vector<std::pair<unsigned int, unsigned int> > pairs;
+	size_t pairCount = vect.size() / 2;
+	for (size_t i = 0; i < pairCount; ++i)
+	{
+		unsigned int a = vect[2 * i];
+		unsigned int b = vect[2 * i + 1];
+		if (a > b) 
+			std::swap(a, b);
+		comparison_count++; // Counting comparison for performance analysis
+		pairs.push_back(std::make_pair(a, b)); // a <= b
+	}
+	//= Phase 2 =//
+	// Recursively sort the larger elements of each pair in ascending order
+	// Phase 3 : Insertion =//
+	// Insert the smaller elements into the sorted sequence using the Jacobsthal sequence
+	// Phase 4 : Final Insertion =//
+	// Insert the smaller elements into the sorted sequence using binary search
+	this->comparison_count.push_back(comparison_count);
 }
 
 void PmergeMe::sort_FJMI_lst(void)
 {
-	
+	size_t comparison_count = 0;
+
+	this->comparison_count.push_back(comparison_count);
 }
 
 const char* PmergeMe::ArgumentEmptyException::what() const throw()

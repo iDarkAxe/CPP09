@@ -30,6 +30,7 @@ private:
 	std::list<unsigned int> lst;
 
 public:
+	std::vector<size_t> comparison_count;
 	size_t	numberOfElements;
 
 //= Methods =//
