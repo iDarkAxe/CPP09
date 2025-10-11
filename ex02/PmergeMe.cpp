@@ -7,12 +7,16 @@
 PmergeMe::PmergeMe()
 {
 	// std::cout << "Default Constructor of PmergeMe" << std::endl;
+	this->show_short_args = true;
+	this->max_short_args = 4;
 }
 
 PmergeMe::PmergeMe(size_t numberOfElement)
 {
 	// std::cout << "Constructor with size of PmergeMe" << std::endl;
 	this->vect.reserve(numberOfElement);
+	this->show_short_args = true;
+	this->max_short_args = 4;
 }
 
 PmergeMe::~PmergeMe()
@@ -50,6 +54,8 @@ void PmergeMe::clear(void)
 {
 	this->vect.clear();
 	this->lst.clear();
+	this->comparison_count.clear();
+	this->numberOfElements = 0;
 }
 
 void PmergeMe::printAllVect(void) const
@@ -117,9 +123,15 @@ void PmergeMe::storeInVect(const char *array[])
 	}
 	numberOfElements = i;
 	std::cout << "Before : ";
-	printAll(vect);
+	if (show_short_args)
+		PmergeMe::printShort(vect);
+	else
+		PmergeMe::printAll(vect);
 	std::cout << "After :  ";
-	printAll(duplicate_test);
+	if (show_short_args)
+		PmergeMe::printShort(vect);
+	else
+		PmergeMe::printAll(duplicate_test);
 }
 
 std::vector<size_t> PmergeMe::generateJacobsthalSequence(size_t n) 
@@ -173,7 +185,7 @@ void PmergeMe::sort_FJMI_vect(void)
 	{
 		unsigned int a = vect[2 * i];
 		unsigned int b = vect[2 * i + 1];
-		if (a > b) 
+		if (a > b)
 			std::swap(a, b);
 		comparison_count++; // Counting comparison for performance analysis
 		pairs.push_back(std::make_pair(a, b)); // a <= b

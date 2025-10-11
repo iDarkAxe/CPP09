@@ -24,6 +24,7 @@ int main(int argc, const char **argv)
 	PmergeMe pmergeme(argc - 1);
 	try 
 	{
+		// pmergeme.show_short_args = false;
 		struct timeval start_tv, end_tv;
 		long microseconds;
 		gettimeofday(&start_tv, NULL);
@@ -36,6 +37,7 @@ int main(int argc, const char **argv)
 		pmergeme.sort_FJMI_vect();
 		gettimeofday(&end_tv, NULL);
 		microseconds = delta_timeval(start_tv, end_tv);
+
 		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << microseconds << " us" << std::endl;
 		gettimeofday(&start_tv, NULL);
 		pmergeme.sort_FJMI_lst();

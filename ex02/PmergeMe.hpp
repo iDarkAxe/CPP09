@@ -15,7 +15,7 @@ enum debug_level
 };
 
 #ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL INFO
+#define DEBUG_LEVEL NOTHING
 #endif
 
 #ifndef THROW_ERROR_IF_DUPLICATE
@@ -32,8 +32,10 @@ private:
 public:
 	std::vector<size_t> comparison_count;
 	size_t	numberOfElements;
+	bool show_short_args;
+	size_t max_short_args;
 
-//= Methods =//
+	//= Methods =//
 private:
 	std::vector<size_t> generateJacobsthalSequence(size_t n);
 
@@ -53,6 +55,20 @@ public:
 		}
 		std::cout << std::endl;
 	}
+
+	template <typename T>
+	void printShort(const T& container, const char *separator = " ")
+	{
+		size_t numberOfElementsToPrint = this->max_short_args;
+		for (typename T::const_iterator it = container.begin(); it != container.end() && numberOfElementsToPrint > 0; ++it)
+		{
+			std::cout << *it << separator;
+			--numberOfElementsToPrint;
+		}
+		std::cout << "[...]";
+		std::cout << std::endl;
+	}
+
 	std::vector<unsigned int>& getVector(void);
 	std::list<unsigned int>& getList(void);
 	void clear(void);
