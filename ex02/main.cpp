@@ -33,17 +33,19 @@ int main(int argc, const char **argv)
 		microseconds = delta_timeval(start_tv, end_tv);
 		std::cout << "Storing in vector took " << microseconds << " us" << std::endl;
 		pmergeme.storeInListFromVect();
+
 		gettimeofday(&start_tv, NULL);
 		pmergeme.sort_FJMI_vect();
 		gettimeofday(&end_tv, NULL);
 		microseconds = delta_timeval(start_tv, end_tv);
-
 		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << microseconds << " us" << std::endl;
+
 		gettimeofday(&start_tv, NULL);
 		pmergeme.sort_FJMI_lst();
 		gettimeofday(&end_tv, NULL);
 		microseconds = delta_timeval(start_tv, end_tv);
 		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::list : " << microseconds << " us" << std::endl;
+
 		if (DEBUG_LEVEL >= INFO)
 		{
 			std::cout << "Nbr of Comparisons :" << std::endl;
