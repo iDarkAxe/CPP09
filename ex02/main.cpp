@@ -3,7 +3,7 @@
 #include <sys/time.h>
 #include <string>
 /* Tester prototype */
-// int tester(void);
+int tester(void);
 
 long delta_timeval(const struct timeval &start, const struct timeval &end);
 
@@ -21,7 +21,7 @@ int main(int argc, const char **argv)
 			std::cout << "Error\n";
 		return (0);
 	}
-	PmergeMe pmergeme(argc - 1);
+	PmergeMe pmergeme(static_cast<size_t>(argc - 1));
 	try 
 	{
 		// pmergeme.show_short_args = false;
@@ -55,9 +55,9 @@ int main(int argc, const char **argv)
 		{
 			std::cout << "Vect :" << std::endl;
 			PmergeMe::printAll(pmergeme.getVector());
-			// std::cout << "\n";
-			// std::cout << "List :" << std::endl;
-			// PmergeMe::printAll(pmergeme.getList());
+			std::cout << "\n";
+			std::cout << "List :" << std::endl;
+			PmergeMe::printAll(pmergeme.getList());
 		}
 	}
 	catch(const std::exception& e)
@@ -93,10 +93,12 @@ int tester(void)
 	{
 		for (size_t index = 0; tests[index]; index++)
 		{
-			PmergeMe pmergme(size[index]);
+			PmergeMe pmergeme(size[index]);
+			pmergeme.show_short_args = false;
 			std::cout << "testing with " << tests[index] << ", size = "<< size[index] << ":\n";
-			pmergme.storeInVect(tests[index]);
-			pmergme.printAllVect();
+			pmergeme.storeInVect(tests[index]);
+			pmergeme.sort_FJMI_vect();
+			pmergeme.printAllVect();
 		}
 	}
 	catch(const std::exception& e)

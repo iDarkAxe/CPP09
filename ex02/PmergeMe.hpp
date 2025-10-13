@@ -15,7 +15,7 @@ enum debug_level
 };
 
 #ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL DEBUG
+#define DEBUG_LEVEL NOTHING
 #endif
 
 #ifndef THROW_ERROR_IF_DUPLICATE
@@ -38,7 +38,7 @@ public:
 //= Methods =//
 private:
 	size_t sort_FJMI_vect_recursive(std::vector<unsigned int> &temp_vec);
-	// size_t sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst);
+	size_t sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst);
 
 public:
 	// Orthodox Canonical Form : Constructors / Destructors / Operators
@@ -157,6 +157,33 @@ private:
 		temp_container.insert(temp_container.begin() + left, value);
 	}
 
+	/**
+	 * @brief Insert a value into a sorted container using binary search
+	 * 
+	 * @param[in,out] temp_lst The list to insert into
+	 * @param[in] value The value to insert
+	 * @param[in] end The end index of the sorted portion of the lst
+	 */
+	void binaryInsertContainer(std::list<unsigned int>& temp_lst, unsigned int value, size_t end)
+	{
+		size_t left = 0;
+		size_t right = end;
+		std::list<unsigned int>::iterator it;
+		while (left < right)
+		{
+			size_t mid = left + (right - left) / 2;
+			it = temp_lst.begin();
+			std::advance(it, mid);
+			if (*it < value) {
+				left = mid + 1;
+			} else {
+				right = mid;
+			}
+		}
+		std::list<unsigned int>::iterator insert_it = temp_lst.begin();
+		std::advance(insert_it, left);
+		temp_lst.insert(insert_it, value);
+	}
 };
 
 #endif
