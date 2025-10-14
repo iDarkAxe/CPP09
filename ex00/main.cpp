@@ -179,7 +179,7 @@ bool isLineOK(const std::string &line, float &priceValue)
 
 void makeCalculation(const BitcoinExchange &btc, const std::string &date, float price)
 {
-	BitcoinExchange::const_iterator it = btc.findNearest(date);
+	std::map<std::string, float>::const_iterator it = btc.findNearest(date);
 	if (it != btc.end())
 	{
 		std::cout << date << " => " << price << " = " << price * it->second << std::endl;

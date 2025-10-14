@@ -51,6 +51,7 @@ public:
 	double calculate(void);
 	void trashFifo(void);
 	void trashResult(void);
+	void clear(void);
 
 	class ArgumentEmptyException : public std::exception
 	{

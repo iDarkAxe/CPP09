@@ -5,9 +5,10 @@
 #include <string>
 #include <iostream>
 
-class BitcoinExchange : public std::map<std::string, float>
+class BitcoinExchange
 {
 private:
+	std::map<std::string, float> data;
 
 public:
 	BitcoinExchange();
@@ -19,7 +20,9 @@ public:
 	void printPair(const std::string &date);
 	void printAll() const;
 	void loadDataFromFile(std::string filename);
-	const_iterator findNearest(const std::string &date) const;
+	std::map<std::string, float>::const_iterator findNearest(const std::string &date) const;
+	std::map<std::string, float>::const_iterator begin() const;
+	std::map<std::string, float>::const_iterator end() const;
 
 	class DatabaseNotFoundException : public std::exception
 	{

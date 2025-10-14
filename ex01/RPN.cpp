@@ -63,13 +63,12 @@ void RPN::printAllFifo(void)
 	std::queue<std::string> backup = this->fifo;
 
 	size_t it = 0;
-	while (this->fifo.size() != 0)
+	while (backup.size() != 0)
 	{
-		std::cout << "it[" << it << "]: '" << this->fifo.front() << "'" << std::endl;
-		this->fifo.pop();
+		std::cout << "it[" << it << "]: '" << backup.front() << "'" << std::endl;
+		backup.pop();
 		it++;
 	}
-	fifo = backup;
 }
 
 /**
@@ -82,13 +81,12 @@ void RPN::printAllResult(void)
 	std::stack<double> backup = this->result;
 
 	size_t it = 0;
-	while (this->result.size() != 0)
+	while (backup.size() != 0)
 	{
-		std::cout << "it[" << it << "]: '" << this->result.top() << "'" << std::endl;
-		this->result.pop();
+		std::cout << "it[" << it << "]: '" << backup.top() << "'" << std::endl;
+		backup.pop();
 		it++;
 	}
-	this->result = backup;
 }
 
 
@@ -203,7 +201,10 @@ double RPN::calculate(void)
 	std::string token;
 	double argLeft, argRight;
 	double currentResult;
-
+	if (this->fifo.empty())
+		throw UseOfEmptyContainerException();
+	if (this->fifo.size() < 3)
+		throw NumberOfArgumentTooLowException();
 	while (!this->fifo.empty()) 
 	{
 		token = getAndPop<std::string>();
@@ -234,12 +235,20 @@ double RPN::calculate(void)
 
 void RPN::trashFifo(void)
 {
-	fifo = std::queue<std::string>();
+	if (!fifo.empty())
+		fifo = std::queue<std::string>();
 }
 
 void RPN::trashResult(void)
 {
-	result = std::stack<double>();
+	if (!result.empty())
+		result = std::stack<double>();
+}
+
+void RPN::clear(void)
+{
+	this->trashFifo();
+	this->trashResult();
 }
 
 const char* RPN::ArgumentEmptyException::what() const throw()

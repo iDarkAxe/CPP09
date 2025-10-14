@@ -29,15 +29,15 @@ BitcoinExchange &BitcoinExchange::operator=(const BitcoinExchange &other)
 
 void BitcoinExchange::addPair(const std::string& date, float prix)
 {
-	this->insert(std::make_pair(date, prix));
+	this->data.insert(std::make_pair(date, prix));
 }
 
 void BitcoinExchange::printPair(const std::string& date)
 {
-	BitcoinExchange::iterator it;
-	
+	std::map<std::string, float>::iterator it;
+
 	try {
-		it = this->find(date);
+		it = this->data.find(date);
 		std::cout << "Date: " << it->first << ", Price: " << it->second << std::endl;
 	}
 	catch (const std::exception &e) {
@@ -48,10 +48,10 @@ void BitcoinExchange::printPair(const std::string& date)
 
 void BitcoinExchange::printAll(void) const
 {
-	BitcoinExchange::const_iterator it;
-	BitcoinExchange::const_iterator end = this->end();
+	std::map<std::string, float>::const_iterator it;
+	std::map<std::string, float>::const_iterator end = this->data.end();
 
-	for (it = this->begin(); it != end; ++it)
+	for (it = this->data.begin(); it != end; ++it)
 	{
 		std::cout << it->first << " => " << it->second << " = " << "placeholder" << std::endl;
 	}
@@ -94,21 +94,21 @@ void BitcoinExchange::loadDataFromFile(std::string filename)
 	}
 }
 
-BitcoinExchange::const_iterator BitcoinExchange::findNearest(const std::string &date) const
+std::map<std::string, float>::const_iterator BitcoinExchange::findNearest(const std::string &date) const
 {
-    const_iterator it = this->lower_bound(date);
-    if (it != this->end() && it->first == date) {
+    std::map<std::string, float>::const_iterator it = this->data.lower_bound(date);
+    if (it != this->data.end() && it->first == date) {
         return it;
     }
 
-    if (it == this->end()) {
+    if (it == this->data.end()) {
         return --it;
     }
 
-    if (it == this->begin()) {
+    if (it == this->data.begin()) {
         return it;
     }
-    const_iterator prev_it = it;
+    std::map<std::string, float>::const_iterator prev_it = it;
 	--prev_it;
     if ((date.compare(prev_it->first)) <= (it->first.compare(date))) {
         return prev_it;
@@ -116,6 +116,17 @@ BitcoinExchange::const_iterator BitcoinExchange::findNearest(const std::string &
         return it;
     }
 }
+
+std::map<std::string, float>::const_iterator BitcoinExchange::begin() const
+{
+	return this->data.begin();
+}
+
+std::map<std::string, float>::const_iterator BitcoinExchange::end() const
+{
+	return this->data.end();
+}
+
 
 const char * BitcoinExchange::DatabaseNotFoundException::what() const throw()
 {
