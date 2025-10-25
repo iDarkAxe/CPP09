@@ -176,6 +176,8 @@ bool RPN::isOperator(std::string& token)
 
 double RPN::makeSimpleCalc(double argLeft, std::string& sign, double argRight)
 {
+	if (sign == "/" && argRight == 0)
+		throw;
 	if (sign == "+")
 		return (argLeft + argRight);
 	if (sign == "-")
@@ -184,8 +186,7 @@ double RPN::makeSimpleCalc(double argLeft, std::string& sign, double argRight)
 		return (argLeft * argRight);
 	if (sign == "/")
 		return (argLeft / argRight);
-	else
-		throw;
+	throw;
 }
 
 /**
