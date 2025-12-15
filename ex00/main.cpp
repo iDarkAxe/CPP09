@@ -9,14 +9,16 @@
 #endif
 
 /* Function prototypes for additional tests */
-int evaluate_args(int argc, char **argv);
-void makeCalculation(const BitcoinExchange &btc, const std::string &date, float price);
-bool isLineOK(const std::string &line);
-void compareFiles(const BitcoinExchange &btc, std::ifstream &file);
+static bool evaluate_args(int argc, char **argv);
+static void makeCalculation(const BitcoinExchange &btc, const std::string &date, float price);
+static bool isLineOK(const std::string &line, float &priceValue);
+static void compareFiles(const BitcoinExchange &btc, std::ifstream &file);
+static bool isDateValid(int year, int month, int day);
+static bool isdigit_inrange(std::string str, size_t start, size_t end);
 
-const size_t minimalSizeOfDataPrice = 14; // 10 for date, 3 for space and sep, 1 for price
-const size_t maximalSizeOfDataPrice = 24; // 10 for date, 3 for space and sep, 11 for price
-const char *databaseFileName = "data.csv";
+static const size_t minimalSizeOfDataPrice = 14; // 10 for date, 3 for space and sep, 1 for price
+static const size_t maximalSizeOfDataPrice = 24; // 10 for date, 3 for space and sep, 11 for price
+static const char *databaseFileName = "data.csv";
 
 /* Mandatory main function */
 int main(int argc, char **argv)
@@ -53,14 +55,22 @@ int main(int argc, char **argv)
 	return (0);
 }
 
-int evaluate_args(int argc, char **argv)
+/**
+ * @brief Evaluate if the args are valid
+ * 
+ * @param[in] argc number of argument 
+ * @param[in] argv list of strings containing the arguments
+ * @return true invalid
+ * @return false invalid
+ */
+bool evaluate_args(int argc, char **argv)
 {
 	if (argc == 2)
-		return (0);
+		return (false);
 	if (argc == 1)
 	{
 		std::cout << "Error : could not open file" << std::endl;
-		return (1);
+		return (true);
 	}
 	std::cout << "Error\nToo many arguments\n";
 	std::cout << "\"" << argv[0] << " ";
@@ -72,7 +82,7 @@ int evaluate_args(int argc, char **argv)
 	}
 	std::cout << "\" is invalid" << std::endl;
 	std::cout << "Usage:\n"  << argv[0] << " FILE\nFILE file representing a database of date/prices of bitcoin" << std::endl;
-	return (1);
+	return (true);
 }
 
 bool isdigit_inrange(std::string str, size_t start, size_t end)
@@ -87,6 +97,15 @@ bool isdigit_inrange(std::string str, size_t start, size_t end)
 	return true;
 }
 
+/**
+ * @brief Verify if a date is valid (exist, existed or will exist)
+ * 
+ * @param[in] year year to verify 
+ * @param[in] month month to verify 
+ * @param[in] day day to verify 
+ * @return true invalid
+ * @return false invalid
+ */
 bool isDateValid(int year, int month, int day)
 {
 	if (year < 2009 || month < 1 || month > 12 || day < 1 || day > 31)
@@ -110,6 +129,16 @@ bool isDateValid(int year, int month, int day)
 	return true;
 }
 
+/**
+ * @brief Verify if a line is OK
+ * A line is ok if it is properly formatted
+ * A line is invalid if the date is invalid or if the priceValue is to high
+ * 
+ * @param[in] line line to read 
+ * @param[out] priceValue value rode in the line
+ * @return true line OK
+ * @return false line invalid
+ */
 bool isLineOK(const std::string &line, float &priceValue)
 {
 	size_t line_len;
@@ -163,7 +192,15 @@ bool isLineOK(const std::string &line, float &priceValue)
 			std::cout << "Error: bad input => " << line << std::endl;
 		return false;
 	}
-	priceValue = atof(line.substr(13).c_str());
+{
+	char *end;
+	std::string subline = line.substr(13);
+	priceValue = strtof(subline.c_str(), &end);
+	if (end == subline.c_str()) {
+		std::cout << "Error : conversion invalid\n";
+		return false;
+	}
+}
 	if (priceValue < 0)
 	{
 		std::cout << "Error: not a positive number." << std::endl;
@@ -177,6 +214,13 @@ bool isLineOK(const std::string &line, float &priceValue)
 	return true;
 }
 
+/**
+ * @brief Make the calculation between a date and a BitcoinExchance class
+ * 
+ * @param[in] btc element to compare
+ * @param[in] date date
+ * @param[in] price price found
+ */
 void makeCalculation(const BitcoinExchange &btc, const std::string &date, float price)
 {
 	std::map<std::string, float>::const_iterator it = btc.findNearest(date);

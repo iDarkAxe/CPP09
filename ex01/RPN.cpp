@@ -89,7 +89,13 @@ void RPN::printAllResult(void)
 	}
 }
 
-
+/**
+ * @brief Verify the Argument given in `item` and throw if it is invalid
+ * 
+ * @param[in,out] item argument to check 
+ * @param[in,out] sep separator
+ * @return uint8_t 
+ */
 uint8_t RPN::checkArguments(std::string& item, char sep)
 {
 	size_t item_len = 0;

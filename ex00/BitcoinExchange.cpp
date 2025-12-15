@@ -7,12 +7,10 @@ const size_t minimalSizeOfDataPrice = 12; // 10 for date, 1 for sep, 1 for price
 
 BitcoinExchange::BitcoinExchange()
 {
-	;
 }
 
 BitcoinExchange::~BitcoinExchange()
 {
-	;
 }
 
 BitcoinExchange::BitcoinExchange(const BitcoinExchange &f)
@@ -34,7 +32,7 @@ void BitcoinExchange::addPair(const std::string& date, float prix)
 
 void BitcoinExchange::printPair(const std::string& date)
 {
-	std::map<std::string, float>::iterator it;
+	BitcoinExchange::dataType::iterator it;
 
 	try {
 		it = this->data.find(date);
@@ -48,8 +46,8 @@ void BitcoinExchange::printPair(const std::string& date)
 
 void BitcoinExchange::printAll(void) const
 {
-	std::map<std::string, float>::const_iterator it;
-	std::map<std::string, float>::const_iterator end = this->data.end();
+	BitcoinExchange::dataType::const_iterator it;
+	BitcoinExchange::dataType::const_iterator end = this->data.end();
 
 	for (it = this->data.begin(); it != end; ++it)
 	{
@@ -57,20 +55,26 @@ void BitcoinExchange::printAll(void) const
 	}
 }
 
+/**
+ * @brief Load the data from a filename and store each line properly in the class
+ * 
+ * @param[in] filename file to read 
+ */
 void BitcoinExchange::loadDataFromFile(std::string filename)
 {
 	std::ifstream database(filename.c_str(), std::ios_base::in);
 
 	if (database.is_open() == false || database.fail())
 	{
-		std::cout << "Error: could not open file" << filename << std::endl;
+		std::cout << "Error: could not open file " << filename << std::endl;
+		std::cout << "File should be placed at the same subfolder level as this program" << std::endl;
 		throw DatabaseNotFoundException();
 	}
 {
 	std::string header;
 	// Read the header line and check if it is valid
-	getline(database, header);
-	if (header != "date,exchange_rate")
+	
+	if (std::getline(database, header).fail() || header != "date,exchange_rate")
 	{
 		std::cout << "Error: bad header => " << header << std::endl;
 		throw WrongHeaderException();
@@ -78,7 +82,7 @@ void BitcoinExchange::loadDataFromFile(std::string filename)
 }
 	std::string line;
 	std::string presumedDate;
-	double presumedPrice;
+	float presumedPrice;
 	while (std::getline(database, line))
 	{
 		if (line.empty() || line[0] == '#')
@@ -89,14 +93,20 @@ void BitcoinExchange::loadDataFromFile(std::string filename)
 			throw CSVFileWronglyFormattedException();
 		}
 		presumedDate = line.substr(0, 10);
-		presumedPrice = strtod(line.substr(11).c_str(), NULL);
+		char *end;
+		std::string subline = line.substr(11);
+		presumedPrice = strtof(subline.c_str(), &end);
+		if (end == subline.c_str()) {
+			// std::cout << "Error : conversion invalid\n";
+			continue;
+		}
 		this->addPair(presumedDate, presumedPrice);
 	}
 }
 
-std::map<std::string, float>::const_iterator BitcoinExchange::findNearest(const std::string &date) const
+BitcoinExchange::dataType::const_iterator BitcoinExchange::findNearest(const std::string &date) const
 {
-    std::map<std::string, float>::const_iterator it = this->data.lower_bound(date);
+    BitcoinExchange::dataType::const_iterator it = this->data.lower_bound(date);
     if (it != this->data.end() && it->first == date) {
         return it;
     }
@@ -108,7 +118,7 @@ std::map<std::string, float>::const_iterator BitcoinExchange::findNearest(const 
     if (it == this->data.begin()) {
         return it;
     }
-    std::map<std::string, float>::const_iterator prev_it = it;
+    BitcoinExchange::dataType::const_iterator prev_it = it;
 	--prev_it;
     if ((date.compare(prev_it->first)) <= (it->first.compare(date))) {
         return prev_it;
@@ -117,12 +127,12 @@ std::map<std::string, float>::const_iterator BitcoinExchange::findNearest(const 
     }
 }
 
-std::map<std::string, float>::const_iterator BitcoinExchange::begin() const
+BitcoinExchange::dataType::const_iterator BitcoinExchange::begin() const
 {
 	return this->data.begin();
 }
 
-std::map<std::string, float>::const_iterator BitcoinExchange::end() const
+BitcoinExchange::dataType::const_iterator BitcoinExchange::end() const
 {
 	return this->data.end();
 }
