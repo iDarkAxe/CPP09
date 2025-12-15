@@ -30,15 +30,15 @@ private:
 	std::list<unsigned int> lst;
 
 public:
-	std::vector<size_t> comparison_count;
-	size_t	numberOfElements;
+	std::vector<size_t> comparison_count_vect;
+	size_t numberOfElements;
 	bool show_short_args;
 	size_t max_short_args;
 
 //= Methods =//
 private:
-	size_t sort_FJMI_vect_recursive(std::vector<unsigned int> &temp_vec);
-	size_t sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst);
+	void sort_FJMI_vect_recursive(std::vector<unsigned int> &temp_vec, size_t &comparison_count);
+	void sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t &comparison_count);
 
 public:
 	// Orthodox Canonical Form : Constructors / Destructors / Operators
@@ -48,8 +48,8 @@ public:
 	PmergeMe(const PmergeMe &f);
 	PmergeMe &operator=(const PmergeMe &other);
 
-	std::vector<unsigned int>& getVector(void);
-	std::list<unsigned int>& getList(void);
+	std::vector<unsigned int> &getVector(void);
+	std::list<unsigned int> &getList(void);
 	void clear(void);
 	void printAllVect(void) const;
 	void printAllList(void) const;
@@ -61,24 +61,24 @@ public:
 //= Exceptions =//
 	class ArgumentEmptyException : public std::exception
 	{
-		public:
-			const char *what() const throw();
+	public:
+		const char *what() const throw();
 	};
 	class ArgumentInvalidException : public std::exception
 	{
-		public:
-			const char *what() const throw();
+	public:
+		const char *what() const throw();
 	};
 	class DuplicateException : public std::exception
 	{
-		public:
-			const char *what() const throw();
+	public:
+		const char *what() const throw();
 	};
 
 public:
 //= Templates =//
 	template <typename T>
-	static void printAll(const T& container, const char *separator = " ")
+	static void printAll(const T &container, const char *separator = " ")
 	{
 		for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
 		{
@@ -88,7 +88,7 @@ public:
 	}
 
 	template <typename T>
-	void printShort(const T& container, const char *separator = " ")
+	void printShort(const T &container, const char *separator = " ")
 	{
 		size_t numberOfElementsToPrint = this->max_short_args;
 		for (typename T::const_iterator it = container.begin(); it != container.end() && numberOfElementsToPrint > 0; ++it)
@@ -104,12 +104,12 @@ private:
 	/**
 	 * @brief Generate the Jacobsthal sequence up to a given number
 	 * see : https://en.wikipedia.org/wiki/Jacobsthal_number
-	 * 
+	 *
 	 * @param[in,out] n The upper limit for the sequence
 	 * @return T The generated Jacobsthal sequence
 	 */
 	template <typename Container>
-	Container generateJacobsthalSequence(size_t n) 
+	Container generateJacobsthalSequence(size_t n)
 	{
 		Container jacobsthal;
 		if (n == 0)
@@ -136,35 +136,42 @@ private:
 
 	/**
 	 * @brief Insert a value into a sorted container using binary search
-	 * 
+	 *
 	 * @param[in,out] temp_container The container to insert into
 	 * @param[in] value The value to insert
-	 * @param[in] end The end index of the sorted portion of the container
+	 * @param[in] comparison_count number of comparison
 	 */
 	template <typename Container>
-	void binaryInsertContainer(Container& temp_container, unsigned int value, size_t end) 
+	void binaryInsertContainer(Container &temp_container, unsigned int value, size_t limit, size_t &comparison_count)
 	{
-		size_t left = 0;
-		size_t right = end;
-		while (left < right) {
-			size_t mid = left + (right - left) / 2;
-			if (temp_container[mid] < value) {
-				left = mid + 1;
-			} else {
+		typename Container::iterator left = temp_container.begin();
+		typename Container::iterator right = temp_container.begin();
+		std::advance(right, std::min(limit, temp_container.size()));
+
+		while (left != right)
+		{
+			typename Container::iterator mid = left;
+			typename Container::difference_type dist = std::distance(left, right);
+			std::advance(mid, dist / 2);
+
+			comparison_count++;
+			if (*mid < value)
+				left = ++mid;
+			else
 				right = mid;
-			}
 		}
-		temp_container.insert(temp_container.begin() + left, value);
+
+		temp_container.insert(left, value);
 	}
 
 	/**
 	 * @brief Insert a value into a sorted container using binary search
-	 * 
+	 *
 	 * @param[in,out] temp_lst The list to insert into
 	 * @param[in] value The value to insert
 	 * @param[in] end The end index of the sorted portion of the lst
 	 */
-	void binaryInsertContainer(std::list<unsigned int>& temp_lst, unsigned int value, size_t end)
+	void binaryInsertContainer(std::list<unsigned int> &temp_lst, unsigned int value, size_t end)
 	{
 		size_t left = 0;
 		size_t right = end;
@@ -174,11 +181,10 @@ private:
 			size_t mid = left + (right - left) / 2;
 			it = temp_lst.begin();
 			std::advance(it, mid);
-			if (*it < value) {
+			if (*it < value)
 				left = mid + 1;
-			} else {
+			else
 				right = mid;
-			}
 		}
 		std::list<unsigned int>::iterator insert_it = temp_lst.begin();
 		std::advance(insert_it, left);

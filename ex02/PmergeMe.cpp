@@ -40,12 +40,12 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 	return *this;
 }
 
-std::vector<unsigned int>& PmergeMe::getVector(void)
+std::vector<unsigned int> &PmergeMe::getVector(void)
 {
 	return this->vect;
 }
 
-std::list<unsigned int>& PmergeMe::getList(void)
+std::list<unsigned int> &PmergeMe::getList(void)
 {
 	return this->lst;
 }
@@ -54,7 +54,7 @@ void PmergeMe::clear(void)
 {
 	this->vect.clear();
 	this->lst.clear();
-	this->comparison_count.clear();
+	this->comparison_count_vect.clear();
 	this->numberOfElements = 0;
 }
 
@@ -86,7 +86,7 @@ void PmergeMe::printAllList(void) const
 
 /**
  * @brief Store in the two container at once
- * 
+ *
  * @param[in] array array of strings
  */
 void PmergeMe::storeInVect(const char *array[])
@@ -97,7 +97,7 @@ void PmergeMe::storeInVect(const char *array[])
 	std::string item;
 	char *pointer = NULL;
 	unsigned int value;
-	
+
 	size_t i;
 	for (i = 0; array[i]; i++)
 	{
@@ -113,7 +113,7 @@ void PmergeMe::storeInVect(const char *array[])
 			throw ArgumentInvalidException();
 		}
 		value = static_cast<unsigned int>(strtoul(array[i], &pointer, 10));
-		if (&pointer == &array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' ' ))
+		if (&pointer == &array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' '))
 		{
 			if (DEBUG_LEVEL >= DEBUG)
 			{
@@ -141,7 +141,7 @@ void PmergeMe::storeInVect(const char *array[])
 		PmergeMe::printAll(vect);
 	std::cout << "After :  ";
 	if (show_short_args)
-		PmergeMe::printShort(vect);
+		PmergeMe::printShort(duplicate_test);
 	else
 		PmergeMe::printAll(duplicate_test);
 }
@@ -153,30 +153,28 @@ void PmergeMe::storeInListFromVect(void)
 
 void PmergeMe::sort_FJMI_vect(void)
 {
-	size_t local_comparison_count;
+	size_t comparison_count = 0;
 
-	local_comparison_count = sort_FJMI_vect_recursive(this->vect);
-	this->comparison_count.push_back(local_comparison_count);
-	return;
+	sort_FJMI_vect_recursive(this->vect, comparison_count);
+	this->comparison_count_vect.push_back(comparison_count);
 }
 
-size_t PmergeMe::sort_FJMI_vect_recursive(std::vector<unsigned int>& temp_vec)
+void PmergeMe::sort_FJMI_vect_recursive(std::vector<unsigned int> &temp_vec, size_t &comparison_count)
 {
-	static size_t local_comparison_count = 0;
-
 	if (DEBUG_LEVEL >= DEBUG)
 		std::cout << "Recursive call with vector of size " << temp_vec.size() << std::endl;
 	if (temp_vec.size() <= 1)
-		return (0);
+		return;
 
 	/* //= Phase 1 =//
-	Group the elements into pairs 
+	Group the elements into pairs
 	and leave the last if odd number of elements. */
 	std::vector<std::pair<unsigned int, unsigned int> > pairs;
 	unsigned int oddElement = 0;
 	bool hasOddElement = false;
 
-	if (temp_vec.size() % 2 == 1) {
+	if (temp_vec.size() % 2 == 1)
+	{
 		hasOddElement = true;
 		oddElement = temp_vec.back();
 	}
@@ -188,7 +186,7 @@ size_t PmergeMe::sort_FJMI_vect_recursive(std::vector<unsigned int>& temp_vec)
 		unsigned int b = temp_vec[2 * i + 1];
 		if (a > b)
 			std::swap(a, b);
-		local_comparison_count++; // Counting comparison for performance analysis
+		comparison_count++; // Counting comparison for performance analysis
 		pairs.push_back(std::make_pair(a, b));
 	}
 
@@ -203,161 +201,193 @@ size_t PmergeMe::sort_FJMI_vect_recursive(std::vector<unsigned int>& temp_vec)
 		smaller.push_back(it->first);
 	}
 
-    // Recursive sort of the larger elements
-	if (larger.size() > 1) {
-		sort_FJMI_vect_recursive(larger);
-	}
+	// Recursive sort of the larger elements
+	if (larger.size() > 1)
+		sort_FJMI_vect_recursive(larger, comparison_count);
 
 	/* //= Phase 3 : Insertion =//
 	Insert the smaller elements into the sorted sequence
 	using the Jacobsthal sequence */
 	std::vector<unsigned int> result;
 
-	if (!smaller.empty()) {
+	// Instert smaller[0] and all the larger
+	if (!smaller.empty())
 		result.push_back(smaller[0]);
-	}
 	result.insert(result.end(), larger.begin(), larger.end());
 
-	std::vector<size_t> jacobsthal = generateJacobsthalSequence<std::vector<size_t> >(smaller.size());
+	/* //= Phase 4 : Final Insertion =//
+	Insert the smaller elements into the sorted sequence using binary search */
+	typedef std::vector<size_t> jacobsthalType;
+	jacobsthalType jacobsthal = generateJacobsthalSequence<jacobsthalType>(smaller.size());
 	std::vector<bool> inserted(smaller.size(), false);
 	if (!inserted.empty())
 		inserted[0] = true;
 
-	/* //= Phase 4 : Final Insertion =//
-	Insert the smaller elements into the sorted sequence using binary search */
-	for (std::vector<size_t>::const_iterator it = jacobsthal.begin(); it != jacobsthal.end(); ++it)
+	// Insertion as Jacobsthal
+	size_t prev_jacob = 1;
+	size_t j = 0;
+	for (jacobsthalType::iterator it = jacobsthal.begin(); it != jacobsthal.end(); ++it, j++)
 	{
-		size_t idx = *it;
-		if (idx < smaller.size() && idx > 0 && !inserted[idx]) {
-			binaryInsertContainer(result, smaller[idx], result.size());
-			inserted[idx] = true;
+		size_t jacob_idx = *it;
+		if (jacob_idx >= smaller.size())
+			continue;
+
+		// Insert in descending  order between prev_jacob and jacob_idx
+		for (size_t i = jacob_idx; i > prev_jacob && i > 0; --i)
+		{
+			if (!inserted[i])
+			{
+				// The search zone is limited by the position of the associated larger
+				size_t search_limit = i + j + 1;
+				if (search_limit > result.size())
+					search_limit = result.size();
+
+				binaryInsertContainer(result, smaller[i], search_limit, comparison_count);
+				inserted[i] = true;
+			}
 		}
+		prev_jacob = jacob_idx;
+	}
+
+	// Insérer les éléments restants
+	for (size_t i = 1; i < smaller.size(); ++i)
+	{
+		if (!inserted[i])
+			binaryInsertContainer(result, smaller[i], result.size(), comparison_count);
+	}
+
+	if (hasOddElement)
+		binaryInsertContainer(result, oddElement, result.size(), comparison_count);
+
+	temp_vec = result;
+}
+
+void PmergeMe::sort_FJMI_lst(void)
+{
+	size_t comparison_count = 0;
+
+	sort_FJMI_lst_recursive(this->lst, comparison_count);
+	this->comparison_count_vect.push_back(comparison_count);
+}
+
+void PmergeMe::sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t &comparison_count)
+{
+
+	if (DEBUG_LEVEL >= DEBUG)
+		std::cout << "Recursive call with list of size " << temp_lst.size() << std::endl;
+	if (temp_lst.size() <= 1)
+		return;
+
+	/* //= Phase 1 =//
+	Group the elements into pairs
+	and leave the last if odd number of elements. */
+	std::vector<std::pair<unsigned int, unsigned int> > pairs;
+	unsigned int oddElement = 0;
+	bool hasOddElement = false;
+
+	std::list<unsigned int>::const_iterator it = temp_lst.begin();
+	while (it != temp_lst.end())
+	{
+		unsigned int a = *it++;
+		if (it == temp_lst.end())
+		{
+			hasOddElement = true;
+			oddElement = a;
+			break;
+		}
+		unsigned int b = *it++;
+		if (a > b)
+			std::swap(a, b);
+		comparison_count++; // Counting comparison for performance analysis
+		pairs.push_back(std::make_pair(a, b));
+	}
+
+	/* //= Phase 2 =//
+	Recursively sort the larger elements of each pair in ascending order */
+	std::list<unsigned int> larger;
+	std::list<unsigned int> smaller;
+
+	for (std::vector<std::pair<unsigned int, unsigned int> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
+	{
+		larger.push_back(it->second);
+		smaller.push_back(it->first);
+	}
+
+	// Recursive sort of the larger elements
+	if (larger.size() > 1)
+		sort_FJMI_lst_recursive(larger, comparison_count);
+
+	/* //= Phase 3 : Insertion =//
+	Insert the smaller elements into the sorted sequence
+	using the Jacobsthal sequence */
+	std::list<unsigned int> result;
+
+	// Insert *smaller and all the larger
+	if (!smaller.empty())
+		result.push_back(*smaller.begin());
+	result.insert(result.end(), larger.begin(), larger.end());
+
+	typedef std::list<size_t> jacobsthalType;
+	jacobsthalType jacobsthal = generateJacobsthalSequence<jacobsthalType>(smaller.size());
+	std::vector<bool> inserted(smaller.size(), false);
+	if (!inserted.empty())
+		inserted[0] = true;
+
+	// Insertion as Jacobsthal
+	size_t prev_jacob = 1;
+	size_t j = 0;
+	for (jacobsthalType::const_iterator it_jac = jacobsthal.begin(); it_jac != jacobsthal.end(); ++it_jac, ++j)
+	{
+		size_t jacob_idx = *it_jac;
+		if (jacob_idx >= smaller.size())
+			continue;
+
+		// Insert in descending  order between prev_jacob and jacob_idx
+		for (size_t i = jacob_idx; i > prev_jacob && i > 0; --i)
+		{
+			if (!inserted[i])
+			{
+				// The search zone is limited by the position of the associated larger
+				size_t search_limit = i + j + 1;
+				if (search_limit > result.size())
+					search_limit = result.size();
+
+				std::list<unsigned int>::const_iterator it_sm = smaller.begin();
+				std::advance(it_sm, i);
+				binaryInsertContainer(result, *it_sm, search_limit, comparison_count);
+				inserted[i] = true;
+			}
+		}
+		prev_jacob = jacob_idx;
 	}
 
 	for (size_t i = 1; i < smaller.size(); ++i)
 	{
 		if (!inserted[i])
-			binaryInsertContainer(result, smaller[i], result.size());
+		{
+			std::list<unsigned int>::const_iterator it_sm = smaller.begin();
+			std::advance(it_sm, i);
+			binaryInsertContainer(result, *it_sm, result.size());
+		}
 	}
 
 	if (hasOddElement)
 		binaryInsertContainer(result, oddElement, result.size());
 
-	temp_vec = result;
-	return (local_comparison_count);
+	temp_lst = result;
 }
 
-void PmergeMe::sort_FJMI_lst(void)
-{
-	size_t local_comparison_count = 0;
-
-	local_comparison_count = sort_FJMI_lst_recursive(this->lst);
-	this->comparison_count.push_back(local_comparison_count);
-	return;
-}
-
-size_t PmergeMe::sort_FJMI_lst_recursive(std::list<unsigned int>& temp_lst)
-{
-    static size_t local_comparison_count = 0;
-
-    if (DEBUG_LEVEL >= DEBUG)
-        std::cout << "Recursive call with list of size " << temp_lst.size() << std::endl;
-    if (temp_lst.size() <= 1)
-        return 0;
-
-    /* //= Phase 1 =//
-    Group the elements into pairs 
-    and leave the last if odd number of elements. */
-    std::vector<std::pair<unsigned int, unsigned int> > pairs;
-    unsigned int oddElement = 0;
-    bool hasOddElement = false;
-
-    std::list<unsigned int>::const_iterator it = temp_lst.begin();
-    while (it != temp_lst.end()) {
-        unsigned int a = *it++;
-        if (it == temp_lst.end()) {
-            hasOddElement = true;
-            oddElement = a;
-            break;
-        }
-        unsigned int b = *it++;
-        if (a > b)
-            std::swap(a, b);
-        local_comparison_count++; // Counting comparison for performance analysis
-        pairs.push_back(std::make_pair(a, b));
-    }
-
-    /* //= Phase 2 =//
-    Recursively sort the larger elements of each pair in ascending order */
-    std::list<unsigned int> larger;
-    std::list<unsigned int> smaller;
-
-    for (std::vector<std::pair<unsigned int, unsigned int> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it) {
-        larger.push_back(it->second);
-        smaller.push_back(it->first);
-    }
-
-    // Recursive sort of the larger elements
-    if (larger.size() > 1) {
-        sort_FJMI_lst_recursive(larger);
-    }
-
-    /* //= Phase 3 : Insertion =//
-    Insert the smaller elements into the sorted sequence
-    using the Jacobsthal sequence */
-    std::list<unsigned int> result;
-
-    if (!smaller.empty()) {
-        result.push_back(*smaller.begin());
-    }
-    result.insert(result.end(), larger.begin(), larger.end());
-
-    std::list<size_t> jacobsthal = generateJacobsthalSequence<std::list<size_t> >(smaller.size());
-    std::vector<bool> inserted(smaller.size(), false);
-    if (!inserted.empty())
-        inserted[0] = true;
-
-    /* //= Phase 4 : Final Insertion =//
-    Insert the smaller elements into the sorted sequence using binary search */
-    for (std::list<size_t>::const_iterator it_jac = jacobsthal.begin(); it_jac != jacobsthal.end(); ++it_jac)
-    {
-        size_t idx = *it_jac;
-        if (idx < smaller.size() && idx > 0 && !inserted[idx]) {
-            std::list<unsigned int>::const_iterator it_sm = smaller.begin();
-            std::advance(it_sm, idx);
-            binaryInsertContainer(result, *it_sm, result.size());
-            inserted[idx] = true;
-        }
-    }
-
-    for (size_t i = 1; i < smaller.size(); ++i)
-    {
-        if (!inserted[i]) {
-            std::list<unsigned int>::const_iterator it_sm = smaller.begin();
-            std::advance(it_sm, i);
-            binaryInsertContainer(result, *it_sm, result.size());
-        }
-    }
-
-    if (hasOddElement)
-        binaryInsertContainer(result, oddElement, result.size());
-
-    temp_lst = result;
-    return local_comparison_count;
-}
-
-
-const char* PmergeMe::ArgumentEmptyException::what() const throw()
+const char *PmergeMe::ArgumentEmptyException::what() const throw()
 {
 	return "At least one argument is empty";
 }
 
-const char* PmergeMe::ArgumentInvalidException::what() const throw()
+const char *PmergeMe::ArgumentInvalidException::what() const throw()
 {
 	return "This argument is invalid";
 }
 
-const char* PmergeMe::DuplicateException::what() const throw()
+const char *PmergeMe::DuplicateException::what() const throw()
 {
 	return "There is a duplicate";
 }

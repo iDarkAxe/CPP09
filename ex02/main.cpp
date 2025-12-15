@@ -49,7 +49,7 @@ int main(int argc, const char **argv)
 		if (DEBUG_LEVEL >= INFO)
 		{
 			std::cout << "Nbr of Comparisons :" << std::endl;
-			PmergeMe::printAll(pmergeme.comparison_count);
+			PmergeMe::printAll(pmergeme.comparison_count_vect);
 		}
 		if (DEBUG_LEVEL >= DEBUG)
 		{
