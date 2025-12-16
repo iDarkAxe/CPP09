@@ -131,8 +131,6 @@ uint8_t RPN::checkArguments(std::string& item, char sep)
  */
 void RPN::store(std::string& input, std::string& separator)
 {
-	(void)input;
-	(void)separator;
 	size_t sep_len = separator.size();
 
 	if (input.empty() || sep_len == 0)
