@@ -7,10 +7,85 @@ int tester(void);
 
 long delta_timeval(const struct timeval &start, const struct timeval &end);
 
+int more(int argc, const char **argv);
+
 /* Mandatory main function */
 int main(int argc, const char **argv)
 {
 	// return (tester());
+	// return (more(argc, argv));
+	if (argc < 2)
+	{
+		if (DEBUG_LEVEL >= INFO)
+		{
+			std::cout << "Usage: " << argv[0] << " \"[PositiveNumbers]\"\n" << "Ford-Johnson MergeInsert Sorter\n\n" << "[PositiveNumbers]:\n0-MAX_UNSIGNED_INT\t\tAll positive numbers (from 0 to the MAX_UNSIGNED_INT).\n\n" << "Example:\n" << argv[0] << "  3 5 9 7 4\n->\nBefore: 3 5 9 7 4\nAfter: 3 4 5 7 9\nTime to process a range of 5 elements with std::vector : 0.00031 us\nTime to process a range of 5 elements with std::list : 0.00014 us"  << '\n';
+		}
+		else
+			std::cout << "Error\n";
+		return (0);
+	}
+	PmergeMe pmergeme(static_cast<size_t>(argc - 1));
+	try 
+	{
+		// pmergeme.show_short_args = false;
+
+		// Storing values in vector
+		struct timeval start_tv, end_tv;
+		long microseconds;
+		gettimeofday(&start_tv, NULL);
+		pmergeme.storeInVect(&argv[1]);
+		pmergeme.storeInListFromVect();
+		gettimeofday(&end_tv, NULL);
+		microseconds = delta_timeval(start_tv, end_tv);
+		std::cout << "Storing in containers took " << microseconds << " us" << std::endl;
+
+		// Vector sorting
+		// gettimeofday(&start_tv, NULL);
+		pmergeme.sort_FJMI_vect();
+		gettimeofday(&end_tv, NULL);
+		microseconds = delta_timeval(start_tv, end_tv);
+		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << microseconds << " us" << std::endl;
+
+		// Storing values in list
+		gettimeofday(&start_tv, NULL);
+		pmergeme.storeInList(&argv[1]);
+		gettimeofday(&end_tv, NULL);
+		microseconds = delta_timeval(start_tv, end_tv);
+		std::cout << "Storing in containers took " << microseconds << " us" << std::endl;
+
+		// List sorting
+		// gettimeofday(&start_tv, NULL);
+		pmergeme.sort_FJMI_lst();
+		gettimeofday(&end_tv, NULL);
+		microseconds = delta_timeval(start_tv, end_tv);
+		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::list : " << microseconds << " us" << std::endl;
+
+		if (DEBUG_LEVEL >= INFO)
+		{
+			std::cout << "Nbr of Comparisons :" << std::endl;
+			PmergeMe::printAll(pmergeme.comparison_count_vect);
+		}
+		if (DEBUG_LEVEL >= DEBUG)
+		{
+			std::cout << "Vect :" << std::endl;
+			PmergeMe::printAll(pmergeme.getVector());
+			std::cout << "\n";
+			std::cout << "List :" << std::endl;
+			PmergeMe::printAll(pmergeme.getList());
+		}
+	}
+	catch(const std::exception& e)
+	{
+		if (DEBUG_LEVEL >= INFO)
+			std::cerr << e.what() << std::endl;
+		else
+			std::cerr << "Error" << std::endl;
+		return (1);
+	}
+}
+
+int more(int argc, const char **argv)
+{
 	if (argc < 2)
 	{
 		if (DEBUG_LEVEL >= INFO)
@@ -32,7 +107,11 @@ int main(int argc, const char **argv)
 		gettimeofday(&end_tv, NULL);
 		microseconds = delta_timeval(start_tv, end_tv);
 		std::cout << "Storing in vector took " << microseconds << " us" << std::endl;
+		gettimeofday(&start_tv, NULL);
 		pmergeme.storeInListFromVect();
+		gettimeofday(&end_tv, NULL);
+		microseconds = delta_timeval(start_tv, end_tv);
+		std::cout << "Storing in list from vect took " << microseconds << " us" << std::endl;
 
 		gettimeofday(&start_tv, NULL);
 		pmergeme.sort_FJMI_vect();
@@ -63,11 +142,12 @@ int main(int argc, const char **argv)
 	catch(const std::exception& e)
 	{
 		if (DEBUG_LEVEL >= INFO)
-			std::cout << e.what() << std::endl;
+			std::cerr << e.what() << std::endl;
 		else
-			std::cout << "Error" << std::endl;
+			std::cerr << "Error" << std::endl;
 		return (1);
 	}
+	return (0);
 }
 
 long delta_timeval(const struct timeval &start, const struct timeval &end)
@@ -104,9 +184,9 @@ int tester(void)
 	catch(const std::exception& e)
 	{
 		if (DEBUG_LEVEL >= DEBUG)
-			std::cout << e.what() << std::endl;
+			std::cerr << e.what() << std::endl;
 		else
-			std::cout << "Error" << std::endl;
+			std::cerr << "Error" << std::endl;
 		return (1);
 	}
 	return (0);

@@ -40,12 +40,12 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 	return *this;
 }
 
-std::vector<unsigned int> &PmergeMe::getVector(void)
+PmergeMe::typeVect &PmergeMe::getVector(void)
 {
 	return this->vect;
 }
 
-std::list<unsigned int> &PmergeMe::getList(void)
+PmergeMe::typeList &PmergeMe::getList(void)
 {
 	return this->lst;
 }
@@ -64,7 +64,7 @@ void PmergeMe::clear(void)
 void PmergeMe::printAllVect(void) const
 {
 	size_t index = 0;
-	for (std::vector<unsigned int>::const_iterator it = this->vect.begin(); it != vect.end(); it++)
+	for (typeVect::const_iterator it = this->vect.begin(); it != vect.end(); it++)
 	{
 		std::cout << "it[" << index << "] = " << *it << std::endl;
 		index++;
@@ -77,7 +77,7 @@ void PmergeMe::printAllVect(void) const
 void PmergeMe::printAllList(void) const
 {
 	size_t index = 0;
-	for (std::list<unsigned int>::const_iterator it = this->lst.begin(); it != lst.end(); it++)
+	for (typeList::const_iterator it = this->lst.begin(); it != lst.end(); it++)
 	{
 		std::cout << "it[" << index << "] = " << *it << std::endl;
 		index++;
@@ -85,14 +85,17 @@ void PmergeMe::printAllList(void) const
 }
 
 /**
- * @brief Store in the two container at once
+ * @brief Store in the container from array of strings
  *
+ * @param[in,out] container The container to store values into
  * @param[in] array array of strings
  */
-void PmergeMe::storeInVect(const char *array[])
+template <typename T>
+void PmergeMe::storeInLoop(T &container, const char *array[])
 {
 	if (!array)
 		throw ArgumentEmptyException();
+	// Check for duplicates, a insert on a set will fail if duplicate
 	std::set<unsigned int> duplicate_test;
 	std::string item;
 	char *pointer = NULL;
@@ -107,9 +110,9 @@ void PmergeMe::storeInVect(const char *array[])
 		if (item.find_first_not_of("0123456789+") != std::string::npos)
 		{
 			if (DEBUG_LEVEL >= DEBUG)
-				std::cout << "Input numbers should only be positive integers" << std::endl;
+				std::cerr << "Input numbers should only be positive integers" << std::endl;
 			if (DEBUG_LEVEL >= INFO)
-				std::cout << item << std::endl;
+				std::cerr << item << std::endl;
 			throw ArgumentInvalidException();
 		}
 		value = static_cast<unsigned int>(strtoul(array[i], &pointer, 10));
@@ -117,8 +120,8 @@ void PmergeMe::storeInVect(const char *array[])
 		{
 			if (DEBUG_LEVEL >= DEBUG)
 			{
-				std::cout << "Input numbers should only be positive integers" << std::endl;
-				std::cout << "Faulty argument is '" << array[i] << "'" << std::endl;
+				std::cerr << "Input numbers should only be positive integers" << std::endl;
+				std::cerr << "Faulty argument is '" << array[i] << "'" << std::endl;
 			}
 			throw ArgumentInvalidException();
 		}
@@ -126,19 +129,19 @@ void PmergeMe::storeInVect(const char *array[])
 		{
 			if (DEBUG_LEVEL >= INFO)
 			{
-				std::cout << "Faulty number is '" << value << "'" << std::endl;
+				std::cerr << "Faulty number is '" << value << "'" << std::endl;
 			}
 			if (THROW_ERROR_IF_DUPLICATE)
 				throw DuplicateException();
 		}
-		vect.push_back(static_cast<unsigned int>(value));
+		container.push_back(static_cast<unsigned int>(value));
 	}
 	numberOfElements = i;
 	std::cout << "Before : ";
 	if (show_short_args)
-		PmergeMe::printShort(vect);
+		PmergeMe::printShort(container);
 	else
-		PmergeMe::printAll(vect);
+		PmergeMe::printAll(container);
 	std::cout << "After :  ";
 	if (show_short_args)
 		PmergeMe::printShort(duplicate_test);
@@ -146,9 +149,40 @@ void PmergeMe::storeInVect(const char *array[])
 		PmergeMe::printAll(duplicate_test);
 }
 
+/**
+ * @brief Store in the vector container
+ *
+ * @param[in] array array of strings
+ */
+void PmergeMe::storeInVect(const char *array[])
+{
+	storeInLoop(this->vect, array);
+}
+
+/**
+ * @brief Store in the list container
+ *
+ * @param[in] array array of strings
+ */
+void PmergeMe::storeInList(const char *array[])
+{
+	storeInLoop(this->lst, array);
+}
+
+void PmergeMe::storeValues(const char *array[])
+{
+	storeInVect(array);
+	storeInListFromVect();
+}
+
 void PmergeMe::storeInListFromVect(void)
 {
 	lst.assign(vect.begin(), vect.end());
+}
+
+void PmergeMe::storeInVectFromList(void)
+{
+	vect.assign(lst.begin(), lst.end());
 }
 
 void PmergeMe::sort_FJMI_vect(void)
@@ -159,7 +193,7 @@ void PmergeMe::sort_FJMI_vect(void)
 	this->comparison_count_vect.push_back(comparison_count);
 }
 
-void PmergeMe::sort_FJMI_vect_recursive(std::vector<unsigned int> &temp_vec, size_t &comparison_count)
+void PmergeMe::sort_FJMI_vect_recursive(typeVect &temp_vec, size_t &comparison_count)
 {
 	if (DEBUG_LEVEL >= DEBUG)
 		std::cout << "Recursive call with vector of size " << temp_vec.size() << std::endl;
@@ -192,8 +226,8 @@ void PmergeMe::sort_FJMI_vect_recursive(std::vector<unsigned int> &temp_vec, siz
 
 	/* //= Phase 2 =//
 	Recursively sort the larger elements of each pair in ascending order */
-	std::vector<unsigned int> larger;
-	std::vector<unsigned int> smaller;
+	typeVect larger;
+	typeVect smaller;
 
 	for (std::vector<std::pair<unsigned int, unsigned int> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
 	{
@@ -208,7 +242,7 @@ void PmergeMe::sort_FJMI_vect_recursive(std::vector<unsigned int> &temp_vec, siz
 	/* //= Phase 3 : Insertion =//
 	Insert the smaller elements into the sorted sequence
 	using the Jacobsthal sequence */
-	std::vector<unsigned int> result;
+	typeVect result;
 
 	// Instert smaller[0] and all the larger
 	if (!smaller.empty())
@@ -270,7 +304,7 @@ void PmergeMe::sort_FJMI_lst(void)
 	this->comparison_count_vect.push_back(comparison_count);
 }
 
-void PmergeMe::sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t &comparison_count)
+void PmergeMe::sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_count)
 {
 
 	if (DEBUG_LEVEL >= DEBUG)
@@ -285,7 +319,7 @@ void PmergeMe::sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t
 	unsigned int oddElement = 0;
 	bool hasOddElement = false;
 
-	std::list<unsigned int>::const_iterator it = temp_lst.begin();
+	typeList::const_iterator it = temp_lst.begin();
 	while (it != temp_lst.end())
 	{
 		unsigned int a = *it++;
@@ -304,8 +338,8 @@ void PmergeMe::sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t
 
 	/* //= Phase 2 =//
 	Recursively sort the larger elements of each pair in ascending order */
-	std::list<unsigned int> larger;
-	std::list<unsigned int> smaller;
+	typeList larger;
+	typeList smaller;
 
 	for (std::vector<std::pair<unsigned int, unsigned int> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
 	{
@@ -320,7 +354,7 @@ void PmergeMe::sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t
 	/* //= Phase 3 : Insertion =//
 	Insert the smaller elements into the sorted sequence
 	using the Jacobsthal sequence */
-	std::list<unsigned int> result;
+	typeList result;
 
 	// Insert *smaller and all the larger
 	if (!smaller.empty())
@@ -352,7 +386,7 @@ void PmergeMe::sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t
 				if (search_limit > result.size())
 					search_limit = result.size();
 
-				std::list<unsigned int>::const_iterator it_sm = smaller.begin();
+				typeList::const_iterator it_sm = smaller.begin();
 				std::advance(it_sm, i);
 				binaryInsertContainer(result, *it_sm, search_limit, comparison_count);
 				inserted[i] = true;
@@ -365,7 +399,7 @@ void PmergeMe::sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t
 	{
 		if (!inserted[i])
 		{
-			std::list<unsigned int>::const_iterator it_sm = smaller.begin();
+			typeList::const_iterator it_sm = smaller.begin();
 			std::advance(it_sm, i);
 			binaryInsertContainer(result, *it_sm, result.size());
 		}

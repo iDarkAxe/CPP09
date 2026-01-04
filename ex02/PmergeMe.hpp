@@ -26,8 +26,10 @@ class PmergeMe
 {
 //= Variables =//
 private:
-	std::vector<unsigned int> vect;
-	std::list<unsigned int> lst;
+	typedef std::vector<unsigned int> typeVect;
+	typedef std::list<unsigned int> typeList;
+	typeVect vect;
+	typeList lst;
 
 public:
 	std::vector<size_t> comparison_count_vect;
@@ -37,8 +39,8 @@ public:
 
 //= Methods =//
 private:
-	void sort_FJMI_vect_recursive(std::vector<unsigned int> &temp_vec, size_t &comparison_count);
-	void sort_FJMI_lst_recursive(std::list<unsigned int> &temp_lst, size_t &comparison_count);
+	void sort_FJMI_vect_recursive(typeVect &temp_vec, size_t &comparison_count);
+	void sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_count);
 
 public:
 	// Orthodox Canonical Form : Constructors / Destructors / Operators
@@ -48,13 +50,18 @@ public:
 	PmergeMe(const PmergeMe &f);
 	PmergeMe &operator=(const PmergeMe &other);
 
-	std::vector<unsigned int> &getVector(void);
-	std::list<unsigned int> &getList(void);
+	typeVect &getVector(void);
+	typeList &getList(void);
 	void clear(void);
 	void printAllVect(void) const;
 	void printAllList(void) const;
+	template <typename T>
+	void storeInLoop(T &container, const char *array[]);
 	void storeInVect(const char *array[]);
+	void storeInList(const char *array[]);
+	void storeValues(const char *array[]);
 	void storeInListFromVect(void);
+	void storeInVectFromList(void);
 	void sort_FJMI_lst(void);
 	void sort_FJMI_vect(void);
 
@@ -171,11 +178,11 @@ private:
 	 * @param[in] value The value to insert
 	 * @param[in] end The end index of the sorted portion of the lst
 	 */
-	void binaryInsertContainer(std::list<unsigned int> &temp_lst, unsigned int value, size_t end)
+	void binaryInsertContainer(typeList &temp_lst, unsigned int value, size_t end)
 	{
 		size_t left = 0;
 		size_t right = end;
-		std::list<unsigned int>::iterator it;
+		typeList::iterator it;
 		while (left < right)
 		{
 			size_t mid = left + (right - left) / 2;
@@ -186,7 +193,7 @@ private:
 			else
 				right = mid;
 		}
-		std::list<unsigned int>::iterator insert_it = temp_lst.begin();
+		typeList::iterator insert_it = temp_lst.begin();
 		std::advance(insert_it, left);
 		temp_lst.insert(insert_it, value);
 	}
