@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <list>
+#include <set>
 #include <string>
 #include <stdint.h>
 #include <iostream>
@@ -32,10 +33,12 @@ private:
 	typeList lst;
 
 public:
+	typedef std::set<unsigned int> typeSet;
 	std::vector<size_t> comparison_count_vect;
 	size_t numberOfElements;
 	bool show_short_args;
-	size_t max_short_args;
+	static size_t max_short_args;
+	typeSet sorted_set;
 
 //= Methods =//
 private:
@@ -95,15 +98,16 @@ public:
 	}
 
 	template <typename T>
-	void printShort(const T &container, const char *separator = " ")
+	static void printShort(const T &container, const char *separator = " ")
 	{
-		size_t numberOfElementsToPrint = this->max_short_args;
+		size_t numberOfElementsToPrint = max_short_args;
 		for (typename T::const_iterator it = container.begin(); it != container.end() && numberOfElementsToPrint > 0; ++it)
 		{
 			std::cout << *it << separator;
 			--numberOfElementsToPrint;
 		}
-		std::cout << "[...]";
+		if (container.size() > max_short_args)
+			std::cout << "[...]";
 		std::cout << std::endl;
 	}
 

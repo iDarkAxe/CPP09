@@ -7,7 +7,10 @@ int tester(void);
 
 long delta_timeval(const struct timeval &start, const struct timeval &end);
 
-int more(int argc, const char **argv);
+// int more(int argc, const char **argv);
+
+#define COUNT_TIME_WITH_STORE 1
+#define USE_STORE_FROM 1
 
 /* Mandatory main function */
 int main(int argc, const char **argv)
@@ -28,33 +31,51 @@ int main(int argc, const char **argv)
 	try 
 	{
 		// pmergeme.show_short_args = false;
+		// pmergeme.max_short_args = 4;
 
 		// Storing values in vector
 		struct timeval start_tv, end_tv;
 		long microseconds;
 		gettimeofday(&start_tv, NULL);
 		pmergeme.storeInVect(&argv[1]);
+		#if USE_STORE_FROM == 1
 		pmergeme.storeInListFromVect();
+		#endif
 		gettimeofday(&end_tv, NULL);
-		microseconds = delta_timeval(start_tv, end_tv);
-		std::cout << "Storing in containers took " << microseconds << " us" << std::endl;
+		// microseconds = delta_timeval(start_tv, end_tv);
+		// std::cout << "Storing in containers took " << microseconds << " us" << std::endl;
+
+		std::cout << "Before : ";
+		if (pmergeme.show_short_args)
+			PmergeMe::printShort(pmergeme.getVector());
+		else
+			PmergeMe::printAll(pmergeme.getVector());
+		std::cout << "After :  ";
+		if (pmergeme.show_short_args)
+			PmergeMe::printShort(pmergeme.sorted_set);
+		else
+			PmergeMe::printAll(pmergeme.sorted_set);
 
 		// Vector sorting
-		// gettimeofday(&start_tv, NULL);
+		#if COUNT_TIME_WITH_STORE == 0
+		gettimeofday(&start_tv, NULL);
+		#endif
 		pmergeme.sort_FJMI_vect();
 		gettimeofday(&end_tv, NULL);
 		microseconds = delta_timeval(start_tv, end_tv);
 		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << microseconds << " us" << std::endl;
 
 		// Storing values in list
+		#if USE_STORE_FROM == 0
 		gettimeofday(&start_tv, NULL);
 		pmergeme.storeInList(&argv[1]);
 		gettimeofday(&end_tv, NULL);
-		microseconds = delta_timeval(start_tv, end_tv);
-		std::cout << "Storing in containers took " << microseconds << " us" << std::endl;
+		#endif
 
 		// List sorting
-		// gettimeofday(&start_tv, NULL);
+		#if COUNT_TIME_WITH_STORE == 0
+		gettimeofday(&start_tv, NULL);
+		#endif
 		pmergeme.sort_FJMI_lst();
 		gettimeofday(&end_tv, NULL);
 		microseconds = delta_timeval(start_tv, end_tv);
@@ -82,72 +103,6 @@ int main(int argc, const char **argv)
 			std::cerr << "Error" << std::endl;
 		return (1);
 	}
-}
-
-int more(int argc, const char **argv)
-{
-	if (argc < 2)
-	{
-		if (DEBUG_LEVEL >= INFO)
-		{
-			std::cout << "Usage: " << argv[0] << " \"[PositiveNumbers]\"\n" << "Ford-Johnson MergeInsert Sorter\n\n" << "[PositiveNumbers]:\n0-MAX_UNSIGNED_INT\t\tAll positive numbers (from 0 to the MAX_UNSIGNED_INT).\n\n" << "Example:\n" << argv[0] << "  3 5 9 7 4\n->\nBefore: 3 5 9 7 4\nAfter: 3 4 5 7 9\nTime to process a range of 5 elements with std::vector : 0.00031 us\nTime to process a range of 5 elements with std::list : 0.00014 us"  << '\n';
-		}
-		else
-			std::cout << "Error\n";
-		return (0);
-	}
-	PmergeMe pmergeme(static_cast<size_t>(argc - 1));
-	try 
-	{
-		// pmergeme.show_short_args = false;
-		struct timeval start_tv, end_tv;
-		long microseconds;
-		gettimeofday(&start_tv, NULL);
-		pmergeme.storeInVect(&argv[1]);
-		gettimeofday(&end_tv, NULL);
-		microseconds = delta_timeval(start_tv, end_tv);
-		std::cout << "Storing in vector took " << microseconds << " us" << std::endl;
-		gettimeofday(&start_tv, NULL);
-		pmergeme.storeInListFromVect();
-		gettimeofday(&end_tv, NULL);
-		microseconds = delta_timeval(start_tv, end_tv);
-		std::cout << "Storing in list from vect took " << microseconds << " us" << std::endl;
-
-		gettimeofday(&start_tv, NULL);
-		pmergeme.sort_FJMI_vect();
-		gettimeofday(&end_tv, NULL);
-		microseconds = delta_timeval(start_tv, end_tv);
-		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << microseconds << " us" << std::endl;
-
-		gettimeofday(&start_tv, NULL);
-		pmergeme.sort_FJMI_lst();
-		gettimeofday(&end_tv, NULL);
-		microseconds = delta_timeval(start_tv, end_tv);
-		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::list : " << microseconds << " us" << std::endl;
-
-		if (DEBUG_LEVEL >= INFO)
-		{
-			std::cout << "Nbr of Comparisons :" << std::endl;
-			PmergeMe::printAll(pmergeme.comparison_count_vect);
-		}
-		if (DEBUG_LEVEL >= DEBUG)
-		{
-			std::cout << "Vect :" << std::endl;
-			PmergeMe::printAll(pmergeme.getVector());
-			std::cout << "\n";
-			std::cout << "List :" << std::endl;
-			PmergeMe::printAll(pmergeme.getList());
-		}
-	}
-	catch(const std::exception& e)
-	{
-		if (DEBUG_LEVEL >= INFO)
-			std::cerr << e.what() << std::endl;
-		else
-			std::cerr << "Error" << std::endl;
-		return (1);
-	}
-	return (0);
 }
 
 long delta_timeval(const struct timeval &start, const struct timeval &end)

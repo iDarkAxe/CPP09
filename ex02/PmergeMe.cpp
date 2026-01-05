@@ -1,14 +1,14 @@
 #include "PmergeMe.hpp"
 #include <iostream>
 #include <sstream>
-#include <set>
 #include <cstdlib>
+
+size_t PmergeMe::max_short_args = 4;
 
 PmergeMe::PmergeMe()
 {
 	// std::cout << "Default Constructor of PmergeMe" << std::endl;
 	this->show_short_args = true;
-	this->max_short_args = 4;
 }
 
 PmergeMe::PmergeMe(size_t numberOfElement)
@@ -16,7 +16,6 @@ PmergeMe::PmergeMe(size_t numberOfElement)
 	// std::cout << "Constructor with size of PmergeMe" << std::endl;
 	this->vect.reserve(numberOfElement);
 	this->show_short_args = true;
-	this->max_short_args = 4;
 }
 
 PmergeMe::~PmergeMe()
@@ -137,16 +136,7 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 		container.push_back(static_cast<unsigned int>(value));
 	}
 	numberOfElements = i;
-	std::cout << "Before : ";
-	if (show_short_args)
-		PmergeMe::printShort(container);
-	else
-		PmergeMe::printAll(container);
-	std::cout << "After :  ";
-	if (show_short_args)
-		PmergeMe::printShort(duplicate_test);
-	else
-		PmergeMe::printAll(duplicate_test);
+	sorted_set = duplicate_test;
 }
 
 /**
