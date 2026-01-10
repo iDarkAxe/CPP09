@@ -58,7 +58,7 @@ double RPN::getAndPop<double>(void)
  * Crazy slow as it needs to unroll the queue to print it, adding it temporarly in another queue and 
  * 
  */
-void RPN::printAllFifo(void)
+void RPN::printAllFifo(void) const
 {
 	std::queue<std::string> backup = this->fifo;
 
@@ -76,7 +76,7 @@ void RPN::printAllFifo(void)
  * Crazy slow as it needs to unroll the queue to print it, adding it temporarly in another queue and 
  * 
  */
-void RPN::printAllResult(void)
+void RPN::printAllResult(void) const
 {
 	std::stack<double> backup = this->result;
 
@@ -92,28 +92,52 @@ void RPN::printAllResult(void)
 /**
  * @brief Verify the Argument given in `item` and throw if it is invalid
  * 
- * @param[in,out] item argument to check 
- * @param[in,out] sep separator
+ * @param[in,out] item argument to check (may be modified if between quotes and ENABLE_MULTIPLE_DIGITS)
  * @return uint8_t 
  */
-uint8_t RPN::checkArguments(std::string& item, char sep)
+uint8_t RPN::checkArguments(std::string& item) const
 {
-	size_t item_len = 0;
-
-	if (item.empty() || item.find(sep) != std::string::npos || (item.size() == 1 && item[0] == '\''))
+	if (item.empty())
 		return (1);
-	item_len = item.size();
-	if (!ENABLE_MULTIPLE_DIGITS && item_len > 1)
+
+	size_t len = item.size();
+
+	// Gestion des nombres entre quotes si ENABLE_MULTIPLE_DIGITS
+	if (ENABLE_MULTIPLE_DIGITS && len >= 3 && item[0] == '\'' && item[len - 1] == '\'')
+	{
+		item = item.substr(1, len - 2);
+		len = item.size();
+	}
+
+	if (len == 1)
+	{
+		if (isdigit(item[0]) || item == "+" || item == "-" || item == "*" || item == "/")
+			return (0);
+		else
+		{
+			if (ENABLE_DEBUG)
+				std::cout << "Faulty argument is '" << item << "'\n";
+			throw ArgumentUnexpectedException();
+		}
+	}
+
+	if (!ENABLE_MULTIPLE_DIGITS && len > 1)
 	{
 		if (ENABLE_DEBUG)
 			std::cout << "Faulty argument is '" << item << "'\n";
 		throw ArgumentTooLongException();
 	}
-	if (ENABLE_MULTIPLE_DIGITS && item_len >= 3 && item[0] == '\'' && item[item_len - 1] == '\'')
-		item = item.substr(1, item_len - 2);
-	if (!ENABLE_MULTIPLE_DIGITS)
+	
+	// Validation du token
+	if (len > 1 && !isdigit(item[0]) && item[0] != '+' && item[0] != '-' && item[0] != '*' && item[0] != '/')
 	{
-		if (!isdigit(item[0]) && item[0] != '+' && item[0] != '-'&& item[0] != '/'&& item[0] != '*')
+		if (ENABLE_DEBUG)
+				std::cout << "Faulty argument is '" << item << "'\n";
+		throw ArgumentUnexpectedException();
+	}
+	for (size_t i = 1; i < len; ++i)
+	{
+		if (!isdigit(item[i]) && item != "+" && item != "-" && item != "*" && item != "/")
 		{
 			if (ENABLE_DEBUG)
 				std::cout << "Faulty argument is '" << item << "'\n";
@@ -129,30 +153,50 @@ uint8_t RPN::checkArguments(std::string& item, char sep)
  * @param input input
  * @param separator list of characters to separate the inputs
  */
-void RPN::store(std::string& input, std::string& separator)
+void RPN::store(const std::string& input, const std::string& separator)
 {
-	size_t sep_len = separator.size();
-
-	if (input.empty() || sep_len == 0)
+	if (input.empty() || separator.empty())
 		throw ArgumentEmptyException();
 
-    std::stringstream ss (input);
-    std::string item;
-	for (size_t i = 0; i < sep_len; i++)
+	size_t pos = 0;
+	size_t sep_len = separator.length();
+
+	while (true)
 	{
-		while (getline(ss, item, separator[i]))
+		size_t next = input.find(separator, pos);
+		std::string token;
+
+		if (next == std::string::npos)
+			token = input.substr(pos);
+		else
+			token = input.substr(pos, next - pos);
+
+		std::cout << "Storing item: '" << token << "'" << std::endl;
+
+		if (checkArguments(token) == 0)
 		{
-			if (checkArguments(item, separator[i]) != 0)
-				continue;
-			this->fifo.push(item);
+			std::cout << "Passed verif !!" << std::endl;
+			fifo.push(token);
 		}
+
+		if (next == std::string::npos)
+			break;
+
+		pos = next + sep_len;
 	}
 }
 
 #if ENABLE_DECIMALS == 1
-bool RPN::isNumber(std::string& token)
+bool RPN::isNumber(std::string& token) const
 {
-	for (size_t i = 0; token[i]; i++)
+	if (token.empty())
+		return (false);
+	size_t i;
+	if (token.size() > 1 && (token[0] == '+' || token[0] == '-'))
+		i = 1; // skip sign
+	else
+		i = 0;
+	for (; token[i]; i++)
 	{
 		if (!isdigit(token[i]) && token[i] != '.' && token[i] != 'f')
 			return (false);
@@ -160,7 +204,7 @@ bool RPN::isNumber(std::string& token)
 	return (true);
 }
 #else
-bool RPN::isNumber(std::string& token)
+bool RPN::isNumber(std::string& token) const
 {
 	for (size_t i = 0; token[i]; i++)
 	{
@@ -171,14 +215,14 @@ bool RPN::isNumber(std::string& token)
 }
 #endif
 
-bool RPN::isOperator(std::string& token)
+bool RPN::isOperator(std::string& token) const
 {
 	if (token == "+" || token == "-" || token == "*" || token == "/")
 		return (true);
 	return (false);
 }
 
-double RPN::makeSimpleCalc(double argLeft, std::string& sign, double argRight)
+double RPN::makeSimpleCalc(double argLeft, std::string& sign, double argRight) const
 {
 	if (sign == "/" && argRight == 0)
 		throw;

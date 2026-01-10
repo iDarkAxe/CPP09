@@ -30,11 +30,10 @@ private:
 	std::queue<std::string>	fifo;
 	std::stack<double> result;
 
-	uint8_t checkArguments(std::string &item, char sep);
-	bool isNumber(std::string& token);
-	bool isOperator(std::string& token);
-	double makeSimpleCalc(double argLeft, std::string& sign, double argRight);
-
+	uint8_t checkArguments(std::string& item) const;
+	bool isNumber(std::string& token) const;
+	bool isOperator(std::string& token) const;
+	double makeSimpleCalc(double argLeft, std::string& sign, double argRight) const;
 
 public:
 	RPN();
@@ -45,9 +44,9 @@ public:
 	template <typename T>
 	T getAndPop(void);
 
-	void printAllFifo(void);
-	void printAllResult(void);
-	void store(std::string &input, std::string &separator);
+	void printAllFifo(void) const;
+	void printAllResult(void) const;
+	void store(const std::string &input, const std::string &separator);
 	double calculate(void);
 	void trashFifo(void);
 	void trashResult(void);
