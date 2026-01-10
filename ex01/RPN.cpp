@@ -104,13 +104,6 @@ uint8_t RPN::checkArguments(std::string& item) const
 
 	size_t len = item.size();
 
-	// Gestion des nombres entre quotes si ENABLE_MULTIPLE_DIGITS
-	if (ENABLE_MULTIPLE_DIGITS && len >= 3 && item[0] == '\'' && item[len - 1] == '\'')
-	{
-		item = item.substr(1, len - 2);
-		len = item.size();
-	}
-
 	if (len == 1)
 	{
 		if (isdigit(item[0]) || item == "+" || item == "-" || item == "*" || item == "/")
@@ -129,9 +122,17 @@ uint8_t RPN::checkArguments(std::string& item) const
 			std::cout << "Faulty argument is '" << item << "'\n";
 		throw ArgumentTooLongException();
 	}
+
+	// ENABLE_MULTIPLE_DIGITS == 1 as we are here
+	// Gestion des nombres entre quotes
+	if (len >= 3 && item[0] == '\'' && item[len - 1] == '\'')
+	{
+		item = item.substr(1, len - 2);
+		len = item.size();
+	}
 	
 	// Validation du token
-	if (len > 1 && !isdigit(item[0]) && item[0] != '+' && item[0] != '-' && item[0] != '*' && item[0] != '/')
+	if (len > 1 && !isdigit(item[0]) && item[0] != '+' && item[0] != '-' && item[0] != '*' && item[0] != '/' && item != ".f")
 	{
 		if (ENABLE_DEBUG)
 				std::cout << "Faulty argument is '" << item << "'\n";
@@ -139,12 +140,39 @@ uint8_t RPN::checkArguments(std::string& item) const
 	}
 	for (size_t i = 1; i < len; ++i)
 	{
-		if (!isdigit(item[i]) && item != "+" && item != "-" && item != "*" && item != "/")
+		if (!isdigit(item[i]) && item != "+" && item != "-" && item != "*" && item != "/" && item[i] != '.' && item[i] != 'f')
 		{
 			if (ENABLE_DEBUG)
 				std::cout << "Faulty argument is '" << item << "'\n";
 			throw ArgumentUnexpectedException();
 		}
+	}
+	
+	// Specific decimal checks
+	size_t dot_pos = item.find_first_of('.');
+	size_t f_pos = item.find_first_of('f');
+
+	if (dot_pos == std::string::npos && f_pos == std::string::npos)
+		return (0);
+	if (dot_pos != item.find_last_of('.') || f_pos != item.find_last_of('f'))
+	{
+		if (ENABLE_DEBUG)
+			std::cout << "Faulty argument is '" << item << "'\n";
+		throw ArgumentUnexpectedException();
+	}
+	if ((dot_pos != std::string::npos && f_pos == std::string::npos) || (dot_pos == std::string::npos && f_pos != std::string::npos))
+	{
+		if (ENABLE_DEBUG)
+			std::cout << "Faulty argument is '" << item << "'\n";
+		throw ArgumentUnexpectedException();
+	}
+	if (dot_pos < f_pos && f_pos == len - 1)
+		return (0);
+	else
+	{
+		if (ENABLE_DEBUG)
+			std::cout << "Faulty argument is '" << item << "'\n";
+		throw ArgumentUnexpectedException();
 	}
 	return (0);
 }
