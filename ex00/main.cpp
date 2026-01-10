@@ -42,6 +42,7 @@ int main(int argc, char **argv)
 	}
 
 	BitcoinExchange btc;
+	// btc.enableReplaceDuplicatesWithLast();
 	try
 	{
 		btc.loadDataFromFile(databaseFileName);
@@ -223,7 +224,7 @@ bool isLineOK(const std::string &line, float &priceValue)
  */
 void makeCalculation(const BitcoinExchange &btc, const std::string &date, float price)
 {
-	std::map<std::string, float>::const_iterator it = btc.findNearest(date);
+	BitcoinExchange::dataType::const_iterator it = btc.findNearest(date);
 	if (it != btc.end())
 	{
 		std::cout << date << " => " << price << " = " << price * it->second << std::endl;

@@ -7,6 +7,7 @@ const size_t minimalSizeOfDataPrice = 12; // 10 for date, 1 for sep, 1 for price
 
 BitcoinExchange::BitcoinExchange()
 {
+	this->replaceDuplicatesWithLast = 0;
 }
 
 BitcoinExchange::~BitcoinExchange()
@@ -25,9 +26,9 @@ BitcoinExchange &BitcoinExchange::operator=(const BitcoinExchange &other)
 	return *this;
 }
 
-void BitcoinExchange::addPair(const std::string& date, float prix)
+BitcoinExchange::insertResultType BitcoinExchange::addPair(const std::string& date, float prix)
 {
-	this->data.insert(std::make_pair(date, prix));
+	return this->data.insert(std::make_pair(date, prix));
 }
 
 void BitcoinExchange::printPair(const std::string& date)
@@ -100,31 +101,45 @@ void BitcoinExchange::loadDataFromFile(std::string filename)
 			// std::cout << "Error : conversion invalid\n";
 			continue;
 		}
-		this->addPair(presumedDate, presumedPrice);
+		if (this->replaceDuplicatesWithLast)
+		{
+			insertResultType ret = this->addPair(presumedDate, presumedPrice);
+			if (!ret.second)
+				ret.first->second = presumedPrice;
+		}
+		else
+		{
+			this->addPair(presumedDate, presumedPrice);
+		}
 	}
 }
 
 BitcoinExchange::dataType::const_iterator BitcoinExchange::findNearest(const std::string &date) const
 {
-    BitcoinExchange::dataType::const_iterator it = this->data.lower_bound(date);
-    if (it != this->data.end() && it->first == date) {
-        return it;
-    }
+	BitcoinExchange::dataType::const_iterator it = this->data.lower_bound(date);
 
-    if (it == this->data.end()) {
-        return --it;
-    }
+	if (it != this->data.end() && it->first == date) {
+		return it;
+	}
 
-    if (it == this->data.begin()) {
-        return it;
-    }
-    BitcoinExchange::dataType::const_iterator prev_it = it;
-	--prev_it;
-    if ((date.compare(prev_it->first)) <= (it->first.compare(date))) {
-        return prev_it;
-    } else {
-        return it;
-    }
+	// Data is before all stored dates
+	if (it == this->data.begin()) {
+		return it;
+	}
+
+	// Date is between two stored dates, we choose one before
+	--it;
+    return it;
+}
+
+void BitcoinExchange::enableReplaceDuplicatesWithLast()
+{
+	this->replaceDuplicatesWithLast = 1;
+}
+
+void BitcoinExchange::disableReplaceDuplicatesWithLast()
+{
+	this->replaceDuplicatesWithLast = 0;
 }
 
 BitcoinExchange::dataType::const_iterator BitcoinExchange::begin() const
