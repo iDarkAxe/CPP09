@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 #ifndef ENABLE_MULTIPLE_DIGITS
-#define ENABLE_MULTIPLE_DIGITS 1
+#define ENABLE_MULTIPLE_DIGITS 0
 #endif
 
 #if ENABLE_MULTIPLE_DIGITS == 1
@@ -16,9 +16,7 @@
 # endif
 #endif
 
-#ifndef MAKE_UNAUTORIZED_ACCESS_THROW
 #define MAKE_UNAUTORIZED_ACCESS_THROW 1
-#endif
 
 #ifndef ENABLE_DEBUG
 #define ENABLE_DEBUG 0
@@ -83,6 +81,11 @@ public:
 			const char *what() const throw();
 	};
 	class ContainerNotCompletelyEmptiedException : public std::exception
+	{
+		public:
+			const char *what() const throw();
+	};
+	class IllegalDivisionException : public std::exception
 	{
 		public:
 			const char *what() const throw();

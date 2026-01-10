@@ -30,8 +30,9 @@ std::string RPN::getAndPop<std::string>(void)
 {
 	if (fifo.empty())
 	{
-		if (MAKE_UNAUTORIZED_ACCESS_THROW)
+		#if MAKE_UNAUTORIZED_ACCESS_THROW == 1
 			throw UseOfEmptyContainerException();
+		#endif
 		return "";
 	}
 	std::string value = fifo.front();
@@ -44,8 +45,9 @@ double RPN::getAndPop<double>(void)
 {
 	if (result.empty())
 	{
-		if (MAKE_UNAUTORIZED_ACCESS_THROW)
+		#if MAKE_UNAUTORIZED_ACCESS_THROW == 1
 			throw UseOfEmptyContainerException();
+		#endif
 		return 0;
 	}
 	double value = result.top();
@@ -171,13 +173,9 @@ void RPN::store(const std::string& input, const std::string& separator)
 		else
 			token = input.substr(pos, next - pos);
 
-		std::cout << "Storing item: '" << token << "'" << std::endl;
 
 		if (checkArguments(token) == 0)
-		{
-			std::cout << "Passed verif !!" << std::endl;
 			fifo.push(token);
-		}
 
 		if (next == std::string::npos)
 			break;
@@ -224,17 +222,23 @@ bool RPN::isOperator(std::string& token) const
 
 double RPN::makeSimpleCalc(double argLeft, std::string& sign, double argRight) const
 {
-	if (sign == "/" && argRight == 0)
-		throw;
-	if (sign == "+")
-		return (argLeft + argRight);
-	if (sign == "-")
-		return (argLeft - argRight);
-	if (sign == "*")
-		return (argLeft * argRight);
-	if (sign == "/")
-		return (argLeft / argRight);
-	throw;
+	if (sign.size() != 1)
+		throw RPN::SignDontExistException();
+	switch (sign[0])
+	{
+		case '+':
+			return (argLeft + argRight);
+		case '-':
+			return (argLeft - argRight);
+		case '*':
+			return (argLeft * argRight);
+		case '/':
+			if (argRight == 0)
+				throw RPN::IllegalDivisionException();
+			return (argLeft / argRight);
+		default:
+			throw RPN::SignDontExistException();
+	}
 }
 
 /**
@@ -333,4 +337,9 @@ const char* RPN::UseOfEmptyContainerException::what() const throw()
 const char* RPN::ContainerNotCompletelyEmptiedException::what() const throw()
 {
 	return "This container still has content ! (maybe needs an operator ?)";
+}
+
+const char* RPN::IllegalDivisionException::what() const throw()
+{
+	return "Division by zero is not allowed";
 }

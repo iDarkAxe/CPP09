@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	catch(const std::exception& e)
 	{
 		if (ENABLE_DEBUG)
-			std::cout << e.what() << std::endl;
+			std::cout << "Error: " << e.what() << std::endl;
 		else
 			std::cout << "Error" << std::endl;
 		return (1);
