@@ -20,7 +20,6 @@ PmergeMe::PmergeMe(size_t numberOfElement)
 
 PmergeMe::~PmergeMe()
 {
-	;
 }
 
 PmergeMe::PmergeMe(const PmergeMe &f)
@@ -30,21 +29,19 @@ PmergeMe::PmergeMe(const PmergeMe &f)
 
 PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 {
-	if (this != &other)
-	{
-		this->vect = other.vect;
-		this->lst = other.lst;
+	if (this == &other)
 		return *this;
-	}
+	this->vect = other.vect;
+	this->lst = other.lst;
 	return *this;
 }
 
-PmergeMe::typeVect &PmergeMe::getVector(void)
+const PmergeMe::typeVect &PmergeMe::getVector(void) const
 {
 	return this->vect;
 }
 
-PmergeMe::typeList &PmergeMe::getList(void)
+const PmergeMe::typeList &PmergeMe::getList(void) const
 {
 	return this->lst;
 }
@@ -175,11 +172,43 @@ void PmergeMe::storeInVectFromList(void)
 	vect.assign(lst.begin(), lst.end());
 }
 
+template <typename Container>
+bool PmergeMe::verifyOrder(const Container &cont) const
+{
+	unsigned int previous = 0;
+	previous = *cont.begin();
+	if (DEBUG_LEVEL >= DEBUG)
+		std::cout << "Testing correct order on container: " << &cont << std::endl;
+	for (typename Container::const_iterator it = cont.begin(); it != cont.end(); ++it)
+	{
+		if (DEBUG_LEVEL >= DEBUG)
+			std::cout << "Comparing " << previous << " and " << *it << std::endl;
+		if (previous > *it)
+		{
+			if (DEBUG_LEVEL >= INFO)
+				std::cerr << "Elements out of order at index " << std::distance(cont.begin(), it) << ": " << previous << " and " << *(it) << std::endl;
+			return false;
+		}
+		previous = *it;
+	}
+	return true;
+}
+
+bool PmergeMe::areSameSize(void) const
+{
+	return this->vect.size() == this->lst.size();
+}
+
 void PmergeMe::sort_FJMI_vect(void)
 {
 	size_t comparison_count = 0;
 
 	sort_FJMI_vect_recursive(this->vect, comparison_count);
+	if (!verifyOrder(this->vect))
+	{
+		// if (DEBUG_LEVEL >= INFO)
+		std::cerr << "Vector is not sorted correctly!" << std::endl;
+	}
 	this->comparison_count_vect.push_back(comparison_count);
 }
 
@@ -291,6 +320,11 @@ void PmergeMe::sort_FJMI_lst(void)
 	size_t comparison_count = 0;
 
 	sort_FJMI_lst_recursive(this->lst, comparison_count);
+	if (!verifyOrder(this->lst))
+	{
+		if (DEBUG_LEVEL >= INFO)
+			std::cerr << "List is not sorted correctly!" << std::endl;
+	}
 	this->comparison_count_vect.push_back(comparison_count);
 }
 
@@ -308,7 +342,7 @@ void PmergeMe::sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_co
 	std::vector<std::pair<unsigned int, unsigned int> > pairs;
 	unsigned int oddElement = 0;
 	bool hasOddElement = false;
-
+{
 	typeList::const_iterator it = temp_lst.begin();
 	while (it != temp_lst.end())
 	{
@@ -325,7 +359,7 @@ void PmergeMe::sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_co
 		comparison_count++; // Counting comparison for performance analysis
 		pairs.push_back(std::make_pair(a, b));
 	}
-
+}
 	/* //= Phase 2 =//
 	Recursively sort the larger elements of each pair in ascending order */
 	typeList larger;
@@ -399,6 +433,33 @@ void PmergeMe::sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_co
 		binaryInsertContainer(result, oddElement, result.size());
 
 	temp_lst = result;
+}
+
+/**
+ * @brief Insert a value into a sorted container using binary search
+ *
+ * @param[in,out] temp_lst The list to insert into
+ * @param[in] value The value to insert
+ * @param[in] end The end index of the sorted portion of the lst
+ */
+void PmergeMe::binaryInsertContainer(typeList &temp_lst, unsigned int value, size_t end)
+{
+	size_t left = 0;
+	size_t right = end;
+	typeList::iterator it;
+	while (left < right)
+	{
+		size_t mid = left + (right - left) / 2;
+		it = temp_lst.begin();
+		std::advance(it, mid);
+		if (*it < value)
+			left = mid + 1;
+		else
+			right = mid;
+	}
+	typeList::iterator insert_it = temp_lst.begin();
+	std::advance(insert_it, left);
+	temp_lst.insert(insert_it, value);
 }
 
 const char *PmergeMe::ArgumentEmptyException::what() const throw()

@@ -53,8 +53,8 @@ public:
 	PmergeMe(const PmergeMe &f);
 	PmergeMe &operator=(const PmergeMe &other);
 
-	typeVect &getVector(void);
-	typeList &getList(void);
+	const typeVect &getVector(void) const;
+	const typeList &getList(void) const;
 	void clear(void);
 	void printAllVect(void) const;
 	void printAllList(void) const;
@@ -67,6 +67,9 @@ public:
 	void storeInVectFromList(void);
 	void sort_FJMI_lst(void);
 	void sort_FJMI_vect(void);
+	bool areSameSize(void) const;
+	template <typename Container>
+	bool verifyOrder(const Container &cont) const;
 
 //= Exceptions =//
 	class ArgumentEmptyException : public std::exception
@@ -88,119 +91,18 @@ public:
 public:
 //= Templates =//
 	template <typename T>
-	static void printAll(const T &container, const char *separator = " ")
-	{
-		for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
-		{
-			std::cout << *it << separator;
-		}
-		std::cout << std::endl;
-	}
-
+	static void printAll(const T &container, const char *separator = " ");
 	template <typename T>
-	static void printShort(const T &container, const char *separator = " ")
-	{
-		size_t numberOfElementsToPrint = max_short_args;
-		for (typename T::const_iterator it = container.begin(); it != container.end() && numberOfElementsToPrint > 0; ++it)
-		{
-			std::cout << *it << separator;
-			--numberOfElementsToPrint;
-		}
-		if (container.size() > max_short_args)
-			std::cout << "[...]";
-		std::cout << std::endl;
-	}
+	static void printShort(const T &container, const char *separator = " ");
 
 private:
-	/**
-	 * @brief Generate the Jacobsthal sequence up to a given number
-	 * see : https://en.wikipedia.org/wiki/Jacobsthal_number
-	 *
-	 * @param[in,out] n The upper limit for the sequence
-	 * @return T The generated Jacobsthal sequence
-	 */
 	template <typename Container>
-	Container generateJacobsthalSequence(size_t n)
-	{
-		Container jacobsthal;
-		if (n == 0)
-			return jacobsthal;
-		jacobsthal.push_back(1);
-		jacobsthal.push_back(1);
-		if (n == 1)
-			return jacobsthal;
-		jacobsthal.push_back(3);
-		size_t prev1 = 1;
-		size_t prev2 = 3;
-		size_t next;
-		while (true)
-		{
-			next = prev2 + 2 * prev1;
-			if (next > n)
-				break;
-			jacobsthal.push_back(next);
-			prev1 = prev2;
-			prev2 = next;
-		}
-		return jacobsthal;
-	}
-
-	/**
-	 * @brief Insert a value into a sorted container using binary search
-	 *
-	 * @param[in,out] temp_container The container to insert into
-	 * @param[in] value The value to insert
-	 * @param[in] comparison_count number of comparison
-	 */
+	Container generateJacobsthalSequence(size_t n);
 	template <typename Container>
-	void binaryInsertContainer(Container &temp_container, unsigned int value, size_t limit, size_t &comparison_count)
-	{
-		typename Container::iterator left = temp_container.begin();
-		typename Container::iterator right = temp_container.begin();
-		std::advance(right, std::min(limit, temp_container.size()));
-
-		while (left != right)
-		{
-			typename Container::iterator mid = left;
-			typename Container::difference_type dist = std::distance(left, right);
-			std::advance(mid, dist / 2);
-
-			comparison_count++;
-			if (*mid < value)
-				left = ++mid;
-			else
-				right = mid;
-		}
-
-		temp_container.insert(left, value);
-	}
-
-	/**
-	 * @brief Insert a value into a sorted container using binary search
-	 *
-	 * @param[in,out] temp_lst The list to insert into
-	 * @param[in] value The value to insert
-	 * @param[in] end The end index of the sorted portion of the lst
-	 */
-	void binaryInsertContainer(typeList &temp_lst, unsigned int value, size_t end)
-	{
-		size_t left = 0;
-		size_t right = end;
-		typeList::iterator it;
-		while (left < right)
-		{
-			size_t mid = left + (right - left) / 2;
-			it = temp_lst.begin();
-			std::advance(it, mid);
-			if (*it < value)
-				left = mid + 1;
-			else
-				right = mid;
-		}
-		typeList::iterator insert_it = temp_lst.begin();
-		std::advance(insert_it, left);
-		temp_lst.insert(insert_it, value);
-	}
+	void binaryInsertContainer(Container &temp_container, unsigned int value, size_t limit, size_t &comparison_count);
+	void binaryInsertContainer(typeList &temp_lst, unsigned int value, size_t end);
 };
+
+#include "PmergeMe.tpp"
 
 #endif

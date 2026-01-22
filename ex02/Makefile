@@ -29,6 +29,7 @@ P_INC = ./
 # Headers
 INC = \
 	PmergeMe.hpp \
+	PmergeMe.tpp \
 
 # Source files
 SRC = \

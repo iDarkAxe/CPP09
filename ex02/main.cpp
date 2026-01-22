@@ -41,10 +41,14 @@ int main(int argc, const char **argv)
 		#if USE_STORE_FROM == 1
 		pmergeme.storeInListFromVect();
 		#endif
-		gettimeofday(&end_tv, NULL);
-		// microseconds = delta_timeval(start_tv, end_tv);
-		// std::cout << "Storing in containers took " << microseconds << " us" << std::endl;
 
+		if (DEBUG_LEVEL >= DEBUG)
+		{
+			gettimeofday(&end_tv, NULL);
+			microseconds = delta_timeval(start_tv, end_tv);
+			std::cout << "Storing in containers took " << microseconds << " us" << std::endl;
+		}
+			
 		std::cout << "Before : ";
 		if (pmergeme.show_short_args)
 			PmergeMe::printShort(pmergeme.getVector());
@@ -89,10 +93,10 @@ int main(int argc, const char **argv)
 		if (DEBUG_LEVEL >= DEBUG)
 		{
 			std::cout << "Vect :" << std::endl;
-			PmergeMe::printAll(pmergeme.getVector());
+			pmergeme.printAllVect();
 			std::cout << "\n";
 			std::cout << "List :" << std::endl;
-			PmergeMe::printAll(pmergeme.getList());
+			pmergeme.printAllList();
 		}
 	}
 	catch(const std::exception& e)
