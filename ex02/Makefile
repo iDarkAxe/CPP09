@@ -9,7 +9,7 @@ NAME = PmergeMe
 # Debugging flags
 CXXFLAGS_DEBUG = -Wall -Wextra -g3 -pg -D DEBUG_LEVEL=1 -std=c++98
 CXX_DEBUG = clang++
-CXX_DEBUG_CXXFLAGS = -std=c++98 -g3 -D DEBUG_LEVEL=1 -Weverything -Wno-padded -pedantic -O2 -Wwrite-strings -Wconversion -fsanitize=address -fsanitize=leak
+CXX_DEBUG_CXXFLAGS = -std=c++98 -g3 -D DEBUG_LEVEL=1 -Weverything -Wno-padded -pedantic -Wno-suggest-override -O2 -Wwrite-strings -Wconversion -fsanitize=address -fsanitize=leak
 #############################################################################################
 #                                                                                           #
 #                                         DIRECTORIES                                       #

@@ -4,13 +4,25 @@
 #include "PmergeMe.hpp"
 
 template <typename T>
-void PmergeMe::printAll(const T &container, const char *separator)
+void PmergeMe::printContainer(const T& container, bool useIndex, const char *separator)
 {
-	for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
+	if (useIndex)
 	{
-		std::cout << *it << separator;
+		size_t index = 0;
+		for (typename T::const_iterator it = container.begin(); it != container.end(); it++)
+		{
+			std::cout << "it[" << index << "] = " << *it << std::endl;
+			index++;
+		}
 	}
-	std::cout << std::endl;
+	else
+	{
+		for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
+		{
+			std::cout << *it << separator;
+		}
+		std::cout << std::endl;
+	}
 }
 
 template <typename T>
@@ -25,39 +37,6 @@ void PmergeMe::printShort(const T &container, const char *separator)
 	if (container.size() > max_short_args)
 		std::cout << "[...]";
 	std::cout << std::endl;
-}
-
-/**
- * @brief Generate the Jacobsthal sequence up to a given number
- * see : https://en.wikipedia.org/wiki/Jacobsthal_number
- *
- * @param[in,out] n The upper limit for the sequence
- * @return T The generated Jacobsthal sequence
- */
-template <typename Container>
-Container PmergeMe::generateJacobsthalSequence(size_t n)
-{
-	Container jacobsthal;
-	if (n == 0)
-		return jacobsthal;
-	jacobsthal.push_back(1);
-	jacobsthal.push_back(1);
-	if (n == 1)
-		return jacobsthal;
-	jacobsthal.push_back(3);
-	size_t prev1 = 1;
-	size_t prev2 = 3;
-	size_t next;
-	while (true)
-	{
-		next = prev2 + 2 * prev1;
-		if (next > n)
-			break;
-		jacobsthal.push_back(next);
-		prev1 = prev2;
-		prev2 = next;
-	}
-	return jacobsthal;
 }
 
 /**
@@ -89,5 +68,39 @@ void PmergeMe::binaryInsertContainer(Container &temp_container, unsigned int val
 
 	temp_container.insert(left, value);
 }
+
+// /**
+//  * @brief Generate the Jacobsthal sequence up to a given number
+//  * see : https://en.wikipedia.org/wiki/Jacobsthal_number
+//  *
+//  * @param[in,out] n The upper limit for the sequence
+//  * @return T The generated Jacobsthal sequence
+//  */
+// template <typename Container>
+// Container PmergeMe::generateJacobsthalSequence(size_t n)
+// {
+// 	Container jacobsthal;
+
+// 	if (n == 0)
+// 		return jacobsthal;
+// 	jacobsthal.push_back(1);
+// 	jacobsthal.push_back(1);
+// 	if (n == 1)
+// 		return jacobsthal;
+// 	jacobsthal.push_back(3);
+// 	size_t prev1 = 1;
+// 	size_t prev2 = 3;
+// 	size_t next;
+// 	while (true)
+// 	{
+// 		next = prev2 + 2 * prev1;
+// 		if (next > n)
+// 			break;
+// 		jacobsthal.push_back(next);
+// 		prev1 = prev2;
+// 		prev2 = next;
+// 	}
+// 	return jacobsthal;
+// }
 
 #endif // PMERGEME_TPP

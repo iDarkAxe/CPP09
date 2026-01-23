@@ -53,10 +53,11 @@ public:
 	PmergeMe(const PmergeMe &f);
 	PmergeMe &operator=(const PmergeMe &other);
 
-	const typeVect &getVector(void) const;
-	const typeList &getList(void) const;
+	// const typeVect &getVector(void) const;
+	// const typeList &getList(void) const;
 	void clear(void);
 	void printAllVect(void) const;
+	void printShortVect(void) const;
 	void printAllList(void) const;
 	template <typename T>
 	void storeInLoop(T &container, const char *array[]);
@@ -91,16 +92,15 @@ public:
 public:
 //= Templates =//
 	template <typename T>
-	static void printAll(const T &container, const char *separator = " ");
+	static void printContainer(const T &container, bool useIndex = 0, const char *separator = " ");
 	template <typename T>
 	static void printShort(const T &container, const char *separator = " ");
 
 private:
-	template <typename Container>
-	Container generateJacobsthalSequence(size_t n);
+	// template <typename Container>
+	// Container generateJacobsthalSequence(size_t n);
 	template <typename Container>
 	void binaryInsertContainer(Container &temp_container, unsigned int value, size_t limit, size_t &comparison_count);
-	void binaryInsertContainer(typeList &temp_lst, unsigned int value, size_t end);
 };
 
 #include "PmergeMe.tpp"

@@ -36,15 +36,15 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 	return *this;
 }
 
-const PmergeMe::typeVect &PmergeMe::getVector(void) const
-{
-	return this->vect;
-}
+// const PmergeMe::typeVect &PmergeMe::getVector(void) const
+// {
+// 	return this->vect;
+// }
 
-const PmergeMe::typeList &PmergeMe::getList(void) const
-{
-	return this->lst;
-}
+// const PmergeMe::typeList &PmergeMe::getList(void) const
+// {
+// 	return this->lst;
+// }
 
 void PmergeMe::clear(void)
 {
@@ -59,12 +59,15 @@ void PmergeMe::clear(void)
  */
 void PmergeMe::printAllVect(void) const
 {
-	size_t index = 0;
-	for (typeVect::const_iterator it = this->vect.begin(); it != vect.end(); it++)
-	{
-		std::cout << "it[" << index << "] = " << *it << std::endl;
-		index++;
-	}
+	printContainer(this->vect);
+}
+
+/**
+ * @brief Print some elements in the vector
+ */
+void PmergeMe::printShortVect(void) const
+{
+	printShort(this->vect);
 }
 
 /**
@@ -72,12 +75,7 @@ void PmergeMe::printAllVect(void) const
  */
 void PmergeMe::printAllList(void) const
 {
-	size_t index = 0;
-	for (typeList::const_iterator it = this->lst.begin(); it != lst.end(); it++)
-	{
-		std::cout << "it[" << index << "] = " << *it << std::endl;
-		index++;
-	}
+	printContainer(this->lst);
 }
 
 /**
@@ -258,57 +256,15 @@ void PmergeMe::sort_FJMI_vect_recursive(typeVect &temp_vec, size_t &comparison_c
 	if (larger.size() > 1)
 		sort_FJMI_vect_recursive(larger, comparison_count);
 
-	/* //= Phase 3 : Insertion =//
-	Insert the smaller elements into the sorted sequence
-	using the Jacobsthal sequence */
-	typeVect result;
+	//= Phase 3 : Insertion =//
+	// Start with the (recursively) sorted larger chain
+	typeVect result(larger.begin(), larger.end());
 
-	// Instert smaller[0] and all the larger
-	if (!smaller.empty())
-		result.push_back(smaller[0]);
-	result.insert(result.end(), larger.begin(), larger.end());
+	// Insert ALL smaller elements (including index 0) into the full sorted range
+	for (size_t i = 0; i < smaller.size(); ++i)
+		binaryInsertContainer(result, smaller[i], result.size(), comparison_count);
 
-	/* //= Phase 4 : Final Insertion =//
-	Insert the smaller elements into the sorted sequence using binary search */
-	typedef std::vector<size_t> jacobsthalType;
-	jacobsthalType jacobsthal = generateJacobsthalSequence<jacobsthalType>(smaller.size());
-	std::vector<bool> inserted(smaller.size(), false);
-	if (!inserted.empty())
-		inserted[0] = true;
-
-	// Insertion as Jacobsthal
-	size_t prev_jacob = 1;
-	size_t j = 0;
-	for (jacobsthalType::iterator it = jacobsthal.begin(); it != jacobsthal.end(); ++it, j++)
-	{
-		size_t jacob_idx = *it;
-		if (jacob_idx >= smaller.size())
-			continue;
-
-		// Insert in descending  order between prev_jacob and jacob_idx
-		for (size_t i = jacob_idx; i > prev_jacob && i > 0; --i)
-		{
-			if (!inserted[i])
-			{
-				// The search zone is limited by the position of the associated larger
-				size_t search_limit = i + j + 1;
-				if (search_limit > result.size())
-					search_limit = result.size();
-
-				binaryInsertContainer(result, smaller[i], search_limit, comparison_count);
-				inserted[i] = true;
-			}
-		}
-		prev_jacob = jacob_idx;
-	}
-
-	// Insérer les éléments restants
-	for (size_t i = 1; i < smaller.size(); ++i)
-	{
-		if (!inserted[i])
-			binaryInsertContainer(result, smaller[i], result.size(), comparison_count);
-	}
-
+	// Insert possible odd element at the end
 	if (hasOddElement)
 		binaryInsertContainer(result, oddElement, result.size(), comparison_count);
 
@@ -322,8 +278,8 @@ void PmergeMe::sort_FJMI_lst(void)
 	sort_FJMI_lst_recursive(this->lst, comparison_count);
 	if (!verifyOrder(this->lst))
 	{
-		if (DEBUG_LEVEL >= INFO)
-			std::cerr << "List is not sorted correctly!" << std::endl;
+		// if (DEBUG_LEVEL >= INFO)
+		std::cerr << "List is not sorted correctly!" << std::endl;
 	}
 	this->comparison_count_vect.push_back(comparison_count);
 }
@@ -375,91 +331,16 @@ void PmergeMe::sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_co
 	if (larger.size() > 1)
 		sort_FJMI_lst_recursive(larger, comparison_count);
 
-	/* //= Phase 3 : Insertion =//
-	Insert the smaller elements into the sorted sequence
-	using the Jacobsthal sequence */
-	typeList result;
-
-	// Insert *smaller and all the larger
-	if (!smaller.empty())
-		result.push_back(*smaller.begin());
-	result.insert(result.end(), larger.begin(), larger.end());
-
-	typedef std::list<size_t> jacobsthalType;
-	jacobsthalType jacobsthal = generateJacobsthalSequence<jacobsthalType>(smaller.size());
-	std::vector<bool> inserted(smaller.size(), false);
-	if (!inserted.empty())
-		inserted[0] = true;
-
-	// Insertion as Jacobsthal
-	size_t prev_jacob = 1;
-	size_t j = 0;
-	for (jacobsthalType::const_iterator it_jac = jacobsthal.begin(); it_jac != jacobsthal.end(); ++it_jac, ++j)
-	{
-		size_t jacob_idx = *it_jac;
-		if (jacob_idx >= smaller.size())
-			continue;
-
-		// Insert in descending  order between prev_jacob and jacob_idx
-		for (size_t i = jacob_idx; i > prev_jacob && i > 0; --i)
-		{
-			if (!inserted[i])
-			{
-				// The search zone is limited by the position of the associated larger
-				size_t search_limit = i + j + 1;
-				if (search_limit > result.size())
-					search_limit = result.size();
-
-				typeList::const_iterator it_sm = smaller.begin();
-				std::advance(it_sm, i);
-				binaryInsertContainer(result, *it_sm, search_limit, comparison_count);
-				inserted[i] = true;
-			}
-		}
-		prev_jacob = jacob_idx;
-	}
-
-	for (size_t i = 1; i < smaller.size(); ++i)
-	{
-		if (!inserted[i])
-		{
-			typeList::const_iterator it_sm = smaller.begin();
-			std::advance(it_sm, i);
-			binaryInsertContainer(result, *it_sm, result.size());
-		}
-	}
+	//= Phase 3 : Insertion =//
+	typeList result(larger.begin(), larger.end());
+	// Insert ALL smaller elements into the full sorted range
+	for (typeList::const_iterator it_sm = smaller.begin(); it_sm != smaller.end(); ++it_sm)
+		binaryInsertContainer(result, *it_sm, result.size(), comparison_count);
 
 	if (hasOddElement)
-		binaryInsertContainer(result, oddElement, result.size());
+		binaryInsertContainer(result, oddElement, result.size(), comparison_count);
 
 	temp_lst = result;
-}
-
-/**
- * @brief Insert a value into a sorted container using binary search
- *
- * @param[in,out] temp_lst The list to insert into
- * @param[in] value The value to insert
- * @param[in] end The end index of the sorted portion of the lst
- */
-void PmergeMe::binaryInsertContainer(typeList &temp_lst, unsigned int value, size_t end)
-{
-	size_t left = 0;
-	size_t right = end;
-	typeList::iterator it;
-	while (left < right)
-	{
-		size_t mid = left + (right - left) / 2;
-		it = temp_lst.begin();
-		std::advance(it, mid);
-		if (*it < value)
-			left = mid + 1;
-		else
-			right = mid;
-	}
-	typeList::iterator insert_it = temp_lst.begin();
-	std::advance(insert_it, left);
-	temp_lst.insert(insert_it, value);
 }
 
 const char *PmergeMe::ArgumentEmptyException::what() const throw()
