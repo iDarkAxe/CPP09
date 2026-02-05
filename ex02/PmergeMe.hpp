@@ -20,7 +20,7 @@ enum debug_level
 #endif
 
 #ifndef THROW_ERROR_IF_DUPLICATE
-#define THROW_ERROR_IF_DUPLICATE 1
+#define THROW_ERROR_IF_DUPLICATE 0
 #endif
 
 class PmergeMe
@@ -38,7 +38,6 @@ public:
 	size_t numberOfElements;
 	bool show_short_args;
 	static size_t max_short_args;
-	typeSet sorted_set;
 
 //= Methods =//
 private:

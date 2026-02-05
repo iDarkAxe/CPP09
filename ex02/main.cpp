@@ -75,9 +75,9 @@ int main(int argc, const char **argv)
 
 		std::cout << "After :  ";
 		if (pmergeme.show_short_args)
-			PmergeMe::printShort(pmergeme.sorted_set);
+			pmergeme.printShortVect();
 		else
-			PmergeMe::printContainer(pmergeme.sorted_set);
+			pmergeme.printAllVect();
 		
 		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << microseconds_vect << " us" << std::endl;
 

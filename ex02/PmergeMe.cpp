@@ -90,7 +90,9 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 	if (!array)
 		throw ArgumentEmptyException();
 	// Check for duplicates, a insert on a set will fail if duplicate
-	std::set<unsigned int> duplicate_test;
+	#if THROW_ERROR_IF_DUPLICATE == 1
+		typeSet duplicate_test;
+	#endif
 	std::string item;
 	char *pointer = NULL;
 	unsigned int value;
@@ -119,6 +121,7 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 			}
 			throw ArgumentInvalidException();
 		}
+		#if THROW_ERROR_IF_DUPLICATE == 1
 		if (!duplicate_test.insert(static_cast<unsigned int>(value)).second)
 		{
 			if (DEBUG_LEVEL >= INFO)
@@ -128,10 +131,10 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 			if (THROW_ERROR_IF_DUPLICATE)
 				throw DuplicateException();
 		}
+		#endif
 		container.push_back(static_cast<unsigned int>(value));
 	}
 	numberOfElements = i;
-	sorted_set = duplicate_test;
 }
 
 /**
