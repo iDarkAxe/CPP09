@@ -27,13 +27,14 @@ class PmergeMe
 {
 //= Variables =//
 private:
-	typedef std::vector<unsigned int> typeVect;
-	typedef std::list<unsigned int> typeList;
+	typedef unsigned int typeElement;
+	typedef std::vector<typeElement> typeVect;
+	typedef std::list<typeElement> typeList;
 	typeVect vect;
 	typeList lst;
 
 public:
-	typedef std::set<unsigned int> typeSet;
+	typedef std::set<typeElement> typeSet;
 	std::vector<size_t> comparison_count_vect;
 	size_t numberOfElements;
 	bool show_short_args;
@@ -99,7 +100,7 @@ private:
 	// template <typename Container>
 	// Container generateJacobsthalSequence(size_t n);
 	template <typename Container>
-	void binaryInsertContainer(Container &temp_container, unsigned int value, size_t limit, size_t &comparison_count);
+	void binaryInsertContainer(Container &temp_container, typename Container::value_type value, size_t limit, size_t &comparison_count);
 };
 
 #include "PmergeMe.tpp"

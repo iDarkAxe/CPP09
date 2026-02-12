@@ -47,7 +47,7 @@ void PmergeMe::printShort(const T &container, const char *separator)
  * @param[in] comparison_count number of comparison
  */
 template <typename Container>
-void PmergeMe::binaryInsertContainer(Container &temp_container, unsigned int value, size_t limit, size_t &comparison_count)
+void PmergeMe::binaryInsertContainer(Container &temp_container, typename Container::value_type value, size_t limit, size_t &comparison_count)
 {
 	typename Container::iterator left = temp_container.begin();
 	typename Container::iterator right = temp_container.begin();
