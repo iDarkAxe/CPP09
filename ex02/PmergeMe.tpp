@@ -69,38 +69,69 @@ void PmergeMe::binaryInsertContainer(Container &temp_container, typename Contain
 	temp_container.insert(left, value);
 }
 
-// /**
-//  * @brief Generate the Jacobsthal sequence up to a given number
-//  * see : https://en.wikipedia.org/wiki/Jacobsthal_number
-//  *
-//  * @param[in,out] n The upper limit for the sequence
-//  * @return T The generated Jacobsthal sequence
-//  */
-// template <typename Container>
-// Container PmergeMe::generateJacobsthalSequence(size_t n)
-// {
-// 	Container jacobsthal;
+/**
+ * @brief Generate the Jacobsthal sequence up to a given number
+ * see : https://en.wikipedia.org/wiki/Jacobsthal_number
+ *
+ * @param[in,out] n The upper limit for the sequence
+ * @return T The generated Jacobsthal sequence
+ */
+template <typename Container>
+Container PmergeMe::generateJacobsthalSequence(size_t n)
+{
+	Container jacobsthal;
 
-// 	if (n == 0)
-// 		return jacobsthal;
-// 	jacobsthal.push_back(1);
-// 	jacobsthal.push_back(1);
-// 	if (n == 1)
-// 		return jacobsthal;
-// 	jacobsthal.push_back(3);
-// 	size_t prev1 = 1;
-// 	size_t prev2 = 3;
-// 	size_t next;
-// 	while (true)
-// 	{
-// 		next = prev2 + 2 * prev1;
-// 		if (next > n)
-// 			break;
-// 		jacobsthal.push_back(next);
-// 		prev1 = prev2;
-// 		prev2 = next;
-// 	}
-// 	return jacobsthal;
-// }
+	if (n == 0)
+		return jacobsthal;
+	jacobsthal.push_back(1);
+	jacobsthal.push_back(1);
+	if (n == 1)
+		return jacobsthal;
+	jacobsthal.push_back(3);
+	size_t prev1 = 1;
+	size_t prev2 = 3;
+	size_t next;
+	while (true)
+	{
+		next = prev2 + 2 * prev1;
+		if (next > n)
+			break;
+		jacobsthal.push_back(next);
+		prev1 = prev2;
+		prev2 = next;
+	}
+	return jacobsthal;
+}
+
+template <typename Container>
+Container PmergeMe::buildJacobsthalOrder(size_t size)
+{
+    Container order;
+    if (size == 0)
+		return order;
+
+    Container jacob = generateJacobsthalSequence<Container>(size);
+    size_t last_pos = 1;
+    
+    for (size_t i = 2; i < jacob.size(); ++i)
+    {
+        size_t current_jacob = jacob[i];
+        size_t val = current_jacob;
+        while (val > last_pos)
+        {
+            if (val <= size)
+                order.push_back(val);
+            val--;
+        }
+        last_pos = current_jacob;
+    }
+    size_t val = size;
+    while (val > last_pos)
+    {
+        order.push_back(val);
+        val--;
+    }
+    return order;
+}
 
 #endif // PMERGEME_TPP

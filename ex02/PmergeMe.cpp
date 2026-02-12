@@ -204,7 +204,13 @@ void PmergeMe::sort_FJMI_vect(void)
 {
 	size_t comparison_count = 0;
 
+	size_t start_size = this->vect.size();
 	sort_FJMI_vect_recursive(this->vect, comparison_count);
+	if (start_size != this->vect.size())
+	{
+		// if (DEBUG_LEVEL >= INFO)
+		std::cerr << "Error: Vector size changed during sorting! Before: " << start_size << ", After: " << this->vect.size() << std::endl;
+	}
 	if (!verifyOrder(this->vect))
 	{
 		// if (DEBUG_LEVEL >= INFO)
@@ -278,7 +284,13 @@ void PmergeMe::sort_FJMI_lst(void)
 {
 	size_t comparison_count = 0;
 
+	size_t start_size = this->lst.size();
 	sort_FJMI_lst_recursive(this->lst, comparison_count);
+	if (start_size != this->lst.size())
+	{
+		// if (DEBUG_LEVEL >= INFO)
+		std::cerr << "Error: List size changed during sorting! Before: " << start_size << ", After: " << this->lst.size() << std::endl;
+	}
 	if (!verifyOrder(this->lst))
 	{
 		// if (DEBUG_LEVEL >= INFO)

@@ -97,10 +97,12 @@ public:
 	static void printShort(const T &container, const char *separator = " ");
 
 private:
-	// template <typename Container>
-	// Container generateJacobsthalSequence(size_t n);
+	template <typename Container>
+	Container generateJacobsthalSequence(size_t n);
 	template <typename Container>
 	void binaryInsertContainer(Container &temp_container, typename Container::value_type value, size_t limit, size_t &comparison_count);
+	template <typename Container>
+	Container buildJacobsthalOrder(size_t size);
 };
 
 #include "PmergeMe.tpp"
