@@ -95,7 +95,7 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 	#endif
 	std::string item;
 	char *pointer = NULL;
-	unsigned int value;
+	typeElement value;
 
 	size_t i;
 	for (i = 0; array[i]; i++)
@@ -111,7 +111,7 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 				std::cerr << item << std::endl;
 			throw ArgumentInvalidException();
 		}
-		value = static_cast<unsigned int>(strtoul(array[i], &pointer, 10));
+		value = static_cast<typeElement>(strtoul(array[i], &pointer, 10));
 		if (&pointer == &array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' '))
 		{
 			if (DEBUG_LEVEL >= DEBUG)
@@ -122,7 +122,7 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 			throw ArgumentInvalidException();
 		}
 		#if THROW_ERROR_IF_DUPLICATE == 1
-		if (!duplicate_test.insert(static_cast<unsigned int>(value)).second)
+		if (!duplicate_test.insert(static_cast<typeElement>(value)).second)
 		{
 			if (DEBUG_LEVEL >= INFO)
 			{
@@ -132,7 +132,7 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 				throw DuplicateException();
 		}
 		#endif
-		container.push_back(static_cast<unsigned int>(value));
+		container.push_back(static_cast<typeElement>(value));
 	}
 	numberOfElements = i;
 }
@@ -176,7 +176,7 @@ void PmergeMe::storeInVectFromList(void)
 template <typename Container>
 bool PmergeMe::verifyOrder(const Container &cont) const
 {
-	unsigned int previous = 0;
+	typeElement previous = 0;
 	previous = *cont.begin();
 	if (DEBUG_LEVEL >= DEBUG)
 		std::cout << "Testing correct order on container: " << &cont << std::endl;
@@ -229,33 +229,17 @@ void PmergeMe::sort_FJMI_vect_recursive(typeVect &temp_vec, size_t &comparison_c
 	/* //= Phase 1 =//
 	Group the elements into pairs
 	and leave the last if odd number of elements. */
-	std::vector<std::pair<unsigned int, unsigned int> > pairs;
-	unsigned int oddElement = 0;
+	std::vector<std::pair<typeElement, typeElement> > pairs;
+	typeElement oddElement = 0;
 	bool hasOddElement = false;
-
-	if (temp_vec.size() % 2 == 1)
-	{
-		hasOddElement = true;
-		oddElement = temp_vec.back();
-	}
-
-	size_t pairCount = temp_vec.size() / 2;
-	for (size_t i = 0; i < pairCount; ++i)
-	{
-		unsigned int a = temp_vec[2 * i];
-		unsigned int b = temp_vec[2 * i + 1];
-		if (a > b)
-			std::swap(a, b);
-		comparison_count++; // Counting comparison for performance analysis
-		pairs.push_back(std::make_pair(a, b));
-	}
+	createPairs(temp_vec, pairs, comparison_count, oddElement, hasOddElement);
 
 	/* //= Phase 2 =//
 	Recursively sort the larger elements of each pair in ascending order */
 	typeVect larger;
 	typeVect smaller;
 
-	for (std::vector<std::pair<unsigned int, unsigned int> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
+	for (std::vector<std::pair<typeElement, typeElement> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
 	{
 		larger.push_back(it->second);
 		smaller.push_back(it->first);
@@ -310,33 +294,17 @@ void PmergeMe::sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_co
 	/* //= Phase 1 =//
 	Group the elements into pairs
 	and leave the last if odd number of elements. */
-	std::vector<std::pair<unsigned int, unsigned int> > pairs;
-	unsigned int oddElement = 0;
+	std::vector<std::pair<typeElement, typeElement> > pairs;
+	typeElement oddElement = 0;
 	bool hasOddElement = false;
-{
-	typeList::const_iterator it = temp_lst.begin();
-	while (it != temp_lst.end())
-	{
-		unsigned int a = *it++;
-		if (it == temp_lst.end())
-		{
-			hasOddElement = true;
-			oddElement = a;
-			break;
-		}
-		unsigned int b = *it++;
-		if (a > b)
-			std::swap(a, b);
-		comparison_count++; // Counting comparison for performance analysis
-		pairs.push_back(std::make_pair(a, b));
-	}
-}
+	createPairs(temp_lst, pairs, comparison_count, oddElement, hasOddElement);
+	
 	/* //= Phase 2 =//
 	Recursively sort the larger elements of each pair in ascending order */
 	typeList larger;
 	typeList smaller;
 
-	for (std::vector<std::pair<unsigned int, unsigned int> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
+	for (std::vector<std::pair<typeElement, typeElement> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
 	{
 		larger.push_back(it->second);
 		smaller.push_back(it->first);

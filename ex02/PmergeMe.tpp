@@ -134,4 +134,35 @@ Container PmergeMe::buildJacobsthalOrder(size_t size)
     return order;
 }
 
+/**
+ * @brief Creates a vector of pairs from the input container, counting comparisons and handling odd elements
+ * 
+ * @tparam Container Type
+ * @param[in] cont container to create pairs from
+ * @param[out] pairs vector to store the pairs
+ * @param[out] comparison_count number of comparisons made during pairing
+ * @param[out] oddElement the odd element if the container has an odd number of elements
+ * @param[out] hasOddElement flag indicating if there is an odd element
+ */
+template <typename Container>
+void PmergeMe::createPairs(const Container& cont, std::vector<std::pair<typeElement, typeElement> > &pairs, size_t &comparison_count, typeElement& oddElement, bool& hasOddElement)
+{
+	typename Container::const_iterator it = cont.begin();
+	while (it != cont.end())
+	{
+		typeElement a = *it++;
+		if (it == cont.end())
+		{
+			hasOddElement = true;
+			oddElement = a;
+			break;
+		}
+		typeElement b = *it++;
+		if (a > b)
+			std::swap(a, b);
+		comparison_count++; // Counting comparison for performance analysis
+		pairs.push_back(std::make_pair(a, b));
+	}
+}
+
 #endif // PMERGEME_TPP

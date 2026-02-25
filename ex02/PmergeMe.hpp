@@ -103,6 +103,8 @@ private:
 	void binaryInsertContainer(Container &temp_container, typename Container::value_type value, size_t limit, size_t &comparison_count);
 	template <typename Container>
 	Container buildJacobsthalOrder(size_t size);
+	template <typename Container>
+	void createPairs(const Container &cont, std::vector<std::pair<typeElement, typeElement> > &pairs, size_t &comparison_count, typeElement &oddElement, bool &hasOddElement);
 };
 
 #include "PmergeMe.tpp"
