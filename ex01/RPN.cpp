@@ -147,28 +147,22 @@ uint8_t RPN::checkArguments(std::string& item) const
 			throw ArgumentUnexpectedException();
 		}
 	}
-	
+
 	// Specific decimal checks
 	size_t dot_pos = item.find_first_of('.');
 	size_t f_pos = item.find_first_of('f');
 
 	if (dot_pos == std::string::npos && f_pos == std::string::npos)
 		return (0);
-	if (dot_pos != item.find_last_of('.') || f_pos != item.find_last_of('f'))
+	if (dot_pos != item.find_last_of('.') || f_pos != item.find_last_of('f')) // plus d'un '.' ou 'f'
 	{
 		if (ENABLE_DEBUG)
 			std::cout << "Faulty argument is '" << item << "'\n";
 		throw ArgumentUnexpectedException();
 	}
-	if ((dot_pos != std::string::npos && f_pos == std::string::npos) || (dot_pos == std::string::npos && f_pos != std::string::npos))
-	{
-		if (ENABLE_DEBUG)
-			std::cout << "Faulty argument is '" << item << "'\n";
-		throw ArgumentUnexpectedException();
-	}
-	if (dot_pos < f_pos && f_pos == len - 1)
-		return (0);
-	else
+
+	// s'il y a un 'f' il doit être à la fin
+	if (f_pos != std::string::npos && f_pos != len - 1)
 	{
 		if (ENABLE_DEBUG)
 			std::cout << "Faulty argument is '" << item << "'\n";

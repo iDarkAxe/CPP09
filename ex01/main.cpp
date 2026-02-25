@@ -1,13 +1,13 @@
 #include "RPN.hpp"
 #include <iostream>
+#include <iomanip>
 
 /* Tester prototype */
 int tester(void);
-
 /* Mandatory main function */
 int main(int argc, char **argv)
 {
-	// return (tester());
+	// return ((void)argc, (void)argv, tester());
 	if (argc != 2)
 	{
 		if (ENABLE_DEBUG)
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 			throw RPN::ArgumentEmptyException();
 		rpn.store(argv_str, delimitor);
 		double result = rpn.calculate();
-		std::cout << result << std::endl;
+		std::cout << std::setprecision(20) << result << std::endl;
 		rpn.trashResult();
 	}
 	catch(const std::exception& e)
@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 	}
 }
 
+#include <limits.h>
 int tester(void)
 {
 	std::vector<std::string> test_cases;
@@ -65,6 +66,12 @@ int tester(void)
 	test_cases.push_back("5 1 2 + 4 * + 3 -");              // = 14
 	test_cases.push_back("3 4 + 2 * 1 -");                   // = 13
 
+	test_cases.push_back("1.5 3.5 +");     					// = 5
+	test_cases.push_back("10 2.5 /");                       // = 4
+	test_cases.push_back("4 20.25 *");                    // = 81
+	test_cases.push_back("1.5f 3.5f +");     					// = 5
+	test_cases.push_back("10 2.5f /");                       // = 4
+	test_cases.push_back("4 20.25f *");                    // = 81
 	std::string argv_str;
 	std::string delimitor = " ";
 	RPN rpn;
