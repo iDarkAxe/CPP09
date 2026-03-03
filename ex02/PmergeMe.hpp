@@ -23,6 +23,12 @@ enum debug_level
 #define THROW_ERROR_IF_DUPLICATE 0
 #endif
 
+namespace Color {
+	extern const bool use_color;
+    extern const char *Color_Off;
+    extern const char *Red;
+}
+
 class PmergeMe
 {
 //= Variables =//
@@ -70,9 +76,6 @@ public:
 	void sort_FJMI_lst(void);
 	void sort_FJMI_vect(void);
 	// bool areSameSize(void) const;
-	template <typename Container>
-	void splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
-	void printPairs(const typeVect &vec, size_t pairSize) const;
 
 	//= Exceptions =//
 	class ArgumentEmptyException : public std::exception
@@ -99,6 +102,10 @@ public:
 	static void printShort(const T &container, const char *separator = " ");
 	template <typename Container>
 	bool verifyOrder(const Container &cont) const;
+	template <typename Container>
+	void splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
+	template <typename Container>
+	void printPairs(const Container &container, size_t pairSize) const;
 
 private:
 	template <typename Container>

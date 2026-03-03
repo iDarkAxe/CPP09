@@ -2,6 +2,7 @@
 #define PMERGEME_TPP
 
 #include "PmergeMe.hpp"
+#include <cstdlib>
 
 template <typename T>
 void PmergeMe::printContainer(const T& container, bool useIndex, const char *separator)
@@ -37,6 +38,65 @@ void PmergeMe::printShort(const T &container, const char *separator)
 	if (container.size() > max_short_args)
 		std::cout << "[...]";
 	std::cout << std::endl;
+}
+
+/**
+ * @brief Store in the container from array of strings
+ *
+ * @param[in,out] container The container to store values into
+ * @param[in] array array of strings
+ */
+template <typename T>
+void PmergeMe::storeInLoop(T &container, const char *array[])
+{
+	if (!array)
+		throw ArgumentEmptyException();
+	// Check for duplicates, a insert on a set will fail if duplicate
+	#if THROW_ERROR_IF_DUPLICATE == 1
+		typeSet duplicate_test;
+	#endif
+	std::string item;
+	char *pointer = NULL;
+	typeElement value;
+
+	size_t i;
+	for (i = 0; array[i]; i++)
+	{
+		item = array[i];
+		if (item.empty())
+			throw ArgumentEmptyException();
+		if (item.find_first_not_of("0123456789+") != std::string::npos)
+		{
+			if (DEBUG_LEVEL >= DEBUG)
+				std::cerr << "Input numbers should only be positive integers" << std::endl;
+			if (DEBUG_LEVEL >= INFO)
+				std::cerr << item << std::endl;
+			throw ArgumentInvalidException();
+		}
+		value = static_cast<typeElement>(strtoul(array[i], &pointer, 10));
+		if (&pointer == &array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' '))
+		{
+			if (DEBUG_LEVEL >= DEBUG)
+			{
+				std::cerr << "Input numbers should only be positive integers" << std::endl;
+				std::cerr << "Faulty argument is '" << array[i] << "'" << std::endl;
+			}
+			throw ArgumentInvalidException();
+		}
+		#if THROW_ERROR_IF_DUPLICATE == 1
+		if (!duplicate_test.insert(static_cast<typeElement>(value)).second)
+		{
+			if (DEBUG_LEVEL >= INFO)
+			{
+				std::cerr << "Faulty number is '" << value << "'" << std::endl;
+			}
+			if (THROW_ERROR_IF_DUPLICATE)
+				throw DuplicateException();
+		}
+		#endif
+		container.push_back(static_cast<typeElement>(value));
+	}
+	numberOfElements = i;
 }
 
 /**
@@ -132,6 +192,61 @@ Container PmergeMe::buildJacobsthalOrder(size_t size)
         val--;
     }
     return order;
+}
+
+template <typename Container>
+bool PmergeMe::verifyOrder(const Container &cont) const
+{
+	typeElement previous = 0;
+	previous = *cont.begin();
+	if (DEBUG_LEVEL >= DEBUG)
+		std::cout << "Testing correct order on container: " << &cont << std::endl;
+	for (typename Container::const_iterator it = cont.begin(); it != cont.end(); ++it)
+	{
+		if (DEBUG_LEVEL >= DEBUG)
+			std::cout << "Comparing " << previous << " and " << *it << std::endl;
+		if (previous > *it)
+		{
+			if (DEBUG_LEVEL >= INFO)
+				std::cerr << "Elements out of order at index " << std::distance(cont.begin(), it) << ": " << previous << " and " << *(it) << std::endl;
+			return false;
+		}
+		previous = *it;
+	}
+	return true;
+}
+
+template <typename Container>
+void PmergeMe::printPairs(const Container &container, size_t pairSize) const
+{
+    size_t pairCount = container.size() / pairSize;
+    std::cout << "______Level " << levelOfRecursion << " with pair size " << pairSize << "______" << std::endl;
+
+    typename Container::const_iterator groupStart = container.begin();
+    for (size_t i = 0; i < pairCount; ++i)
+    {
+        std::cout << i << "/" << pairCount - 1 << ": ";
+        typename Container::const_iterator it = groupStart;
+        for (size_t j = 0; j < pairSize; ++j, ++it)
+        {
+            if (Color::use_color && (j == pairSize / 2 - 1 || j == pairSize - 1))
+                std::cout << Color::Red << *it << " " << Color::Color_Off;
+            else
+                std::cout << *it << " ";
+        }
+        std::cout << std::endl;
+        std::advance(groupStart, pairSize);
+    }
+
+    // Straggler
+    if (pairCount * pairSize < container.size())
+    {
+        std::cout << "Straggler: ";
+        typename Container::const_iterator it = groupStart;
+        while (it != container.end())
+            std::cout << *it++ << " ";
+        std::cout << std::endl;
+    }
 }
 
 template <typename Container>

@@ -1,15 +1,12 @@
 #include "PmergeMe.hpp"
 #include <iostream>
 #include <sstream>
-#include <cstdlib>
-
-#define USE_COLOR 1
 
 namespace Color {
+	const bool use_color = 1;
 	// Text Reset;
 	const char *Color_Off="\033[0m";
 	// Regular Colors
-	const char *Black="\033[0;30m";
 	const char *Red="\033[0;31m";
 }
 
@@ -92,65 +89,6 @@ void PmergeMe::printAllList(void) const
 }
 
 /**
- * @brief Store in the container from array of strings
- *
- * @param[in,out] container The container to store values into
- * @param[in] array array of strings
- */
-template <typename T>
-void PmergeMe::storeInLoop(T &container, const char *array[])
-{
-	if (!array)
-		throw ArgumentEmptyException();
-	// Check for duplicates, a insert on a set will fail if duplicate
-	#if THROW_ERROR_IF_DUPLICATE == 1
-		typeSet duplicate_test;
-	#endif
-	std::string item;
-	char *pointer = NULL;
-	typeElement value;
-
-	size_t i;
-	for (i = 0; array[i]; i++)
-	{
-		item = array[i];
-		if (item.empty())
-			throw ArgumentEmptyException();
-		if (item.find_first_not_of("0123456789+") != std::string::npos)
-		{
-			if (DEBUG_LEVEL >= DEBUG)
-				std::cerr << "Input numbers should only be positive integers" << std::endl;
-			if (DEBUG_LEVEL >= INFO)
-				std::cerr << item << std::endl;
-			throw ArgumentInvalidException();
-		}
-		value = static_cast<typeElement>(strtoul(array[i], &pointer, 10));
-		if (&pointer == &array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' '))
-		{
-			if (DEBUG_LEVEL >= DEBUG)
-			{
-				std::cerr << "Input numbers should only be positive integers" << std::endl;
-				std::cerr << "Faulty argument is '" << array[i] << "'" << std::endl;
-			}
-			throw ArgumentInvalidException();
-		}
-		#if THROW_ERROR_IF_DUPLICATE == 1
-		if (!duplicate_test.insert(static_cast<typeElement>(value)).second)
-		{
-			if (DEBUG_LEVEL >= INFO)
-			{
-				std::cerr << "Faulty number is '" << value << "'" << std::endl;
-			}
-			if (THROW_ERROR_IF_DUPLICATE)
-				throw DuplicateException();
-		}
-		#endif
-		container.push_back(static_cast<typeElement>(value));
-	}
-	numberOfElements = i;
-}
-
-/**
  * @brief Store in the vector container
  *
  * @param[in] array array of strings
@@ -186,57 +124,10 @@ void PmergeMe::storeInVectFromList(void)
 	vect.assign(lst.begin(), lst.end());
 }
 
-template <typename Container>
-bool PmergeMe::verifyOrder(const Container &cont) const
-{
-	typeElement previous = 0;
-	previous = *cont.begin();
-	if (DEBUG_LEVEL >= DEBUG)
-		std::cout << "Testing correct order on container: " << &cont << std::endl;
-	for (typename Container::const_iterator it = cont.begin(); it != cont.end(); ++it)
-	{
-		if (DEBUG_LEVEL >= DEBUG)
-			std::cout << "Comparing " << previous << " and " << *it << std::endl;
-		if (previous > *it)
-		{
-			if (DEBUG_LEVEL >= INFO)
-				std::cerr << "Elements out of order at index " << std::distance(cont.begin(), it) << ": " << previous << " and " << *(it) << std::endl;
-			return false;
-		}
-		previous = *it;
-	}
-	return true;
-}
-
 // bool PmergeMe::areSameSize(void) const
 // {
 // 	return this->vect.size() == this->lst.size();
 // }
-
-void PmergeMe::printPairs(const typeVect &vec, size_t pairSize) const
-{
-	size_t pairCount = vec.size() / pairSize;
-	std::cout << "______Level " << levelOfRecursion << " with pair size " << pairSize << "______" << std::endl;
-	for(size_t i = 0; i < pairCount * pairSize; i += pairSize)
-	{
-		std::cout << i / pairSize << "/" << pairCount - 1 << ": ";
-		for (size_t j = 0; j < pairSize && i + j < vec.size(); ++j)
-		{
-			if (USE_COLOR && (j == pairSize / 2 - 1 || j == pairSize - 1))
-				std::cout << Color::Red << vec[i + j] << " " << Color::Color_Off;
-			else
-				std::cout << vec[i + j] << " ";
-		}
-		std::cout << std::endl;
-	}
-	if (pairCount * pairSize < vec.size())
-	{
-		std::cout << "Straggler: ";
-		for(size_t i = pairCount * pairSize; i < vec.size(); ++i)
-			std::cout << vec[i] << " ";
-		std::cout << std::endl;
-	}
-}
 
 void PmergeMe::sort_FJMI_vect(void)
 {
