@@ -36,6 +36,7 @@ private:
 public:
 	typedef std::set<typeElement> typeSet;
 	std::vector<size_t> comparison_count_vect;
+	size_t levelOfRecursion;
 	size_t numberOfElements;
 	bool show_short_args;
 	static size_t max_short_args;
@@ -48,7 +49,7 @@ private:
 public:
 	// Orthodox Canonical Form : Constructors / Destructors / Operators
 	PmergeMe();
-	PmergeMe(size_t numberOfElement);
+	PmergeMe(size_t startingSize);
 	~PmergeMe();
 	PmergeMe(const PmergeMe &f);
 	PmergeMe &operator=(const PmergeMe &other);
@@ -68,11 +69,12 @@ public:
 	void storeInVectFromList(void);
 	void sort_FJMI_lst(void);
 	void sort_FJMI_vect(void);
-	bool areSameSize(void) const;
+	// bool areSameSize(void) const;
 	template <typename Container>
-	bool verifyOrder(const Container &cont) const;
+	void splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
+	void printPairs(const typeVect &vec, size_t pairSize) const;
 
-//= Exceptions =//
+	//= Exceptions =//
 	class ArgumentEmptyException : public std::exception
 	{
 	public:
@@ -95,6 +97,8 @@ public:
 	static void printContainer(const T &container, bool useIndex = 0, const char *separator = " ");
 	template <typename T>
 	static void printShort(const T &container, const char *separator = " ");
+	template <typename Container>
+	bool verifyOrder(const Container &cont) const;
 
 private:
 	template <typename Container>

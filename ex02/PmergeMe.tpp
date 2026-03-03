@@ -134,35 +134,40 @@ Container PmergeMe::buildJacobsthalOrder(size_t size)
     return order;
 }
 
-/**
- * @brief Creates a vector of pairs from the input container, counting comparisons and handling odd elements
- * 
- * @tparam Container Type
- * @param[in] cont container to create pairs from
- * @param[out] pairs vector to store the pairs
- * @param[out] comparison_count number of comparisons made during pairing
- * @param[out] oddElement the odd element if the container has an odd number of elements
- * @param[out] hasOddElement flag indicating if there is an odd element
- */
 template <typename Container>
-void PmergeMe::createPairs(const Container& cont, std::vector<std::pair<typeElement, typeElement> > &pairs, size_t &comparison_count, typeElement& oddElement, bool& hasOddElement)
+void PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count)
 {
-	typename Container::const_iterator it = cont.begin();
-	while (it != cont.end())
-	{
-		typeElement a = *it++;
-		if (it == cont.end())
-		{
-			hasOddElement = true;
-			oddElement = a;
-			break;
-		}
-		typeElement b = *it++;
-		if (a > b)
-			std::swap(a, b);
-		comparison_count++; // Counting comparison for performance analysis
-		pairs.push_back(std::make_pair(a, b));
-	}
+    size_t pairCount = container.size() / pairSize;
+    if (pairCount < 2)
+        return;
+
+    size_t halfSize = pairSize / 2;
+
+    typename Container::iterator groupStart = container.begin();
+    for (size_t p = 0; p < pairCount; ++p)
+    {
+        typename Container::iterator it1 = groupStart;
+        typename Container::iterator it2 = groupStart;
+        std::advance(it2, halfSize); // début de la 2e moitié
+        typename Container::iterator LastOfFirstHalf = it2; // sauvegarde avant avancement
+        --LastOfFirstHalf;
+
+        typename Container::iterator LastOfSecondHalf = it2;
+        std::advance(LastOfSecondHalf, halfSize - 1);
+
+        comparison_count++;
+        if (*LastOfFirstHalf > *LastOfSecondHalf)
+        {
+            for (size_t j = 0; j < halfSize; ++j, ++it1, ++it2)
+                std::iter_swap(it1, it2); //same as std::swap(*it1, *it2) but for iterators
+        }
+
+        std::advance(groupStart, pairSize);
+    }
+
+    printPairs(container, pairSize);
+    levelOfRecursion++;
+    splitIntoPairsRecursive(container, pairSize * 2, comparison_count);
 }
 
 #endif // PMERGEME_TPP

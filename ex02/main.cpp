@@ -55,7 +55,7 @@ int main(int argc, const char **argv)
 		pmergeme.sort_FJMI_vect();
 		gettimeofday(&end_tv, NULL);
 		microseconds_vect = delta_timeval(start_tv, end_tv);
-
+		return (0); //<--------------------------------------------------- testing line
 		// Storing values in list
 		#if USE_STORE_FROM == 1
 		gettimeofday(&start_tv, NULL);

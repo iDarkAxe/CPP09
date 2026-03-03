@@ -3,18 +3,28 @@
 #include <sstream>
 #include <cstdlib>
 
+#define USE_COLOR 1
+
+namespace Color {
+	// Text Reset;
+	const char *Color_Off="\033[0m";
+	// Regular Colors
+	const char *Black="\033[0;30m";
+	const char *Red="\033[0;31m";
+}
+
 size_t PmergeMe::max_short_args = 4;
 
-PmergeMe::PmergeMe()
+PmergeMe::PmergeMe() : levelOfRecursion(0), numberOfElements(0)
 {
 	// std::cout << "Default Constructor of PmergeMe" << std::endl;
 	this->show_short_args = true;
 }
 
-PmergeMe::PmergeMe(size_t numberOfElement)
+PmergeMe::PmergeMe(size_t startingSize) : levelOfRecursion(0), numberOfElements(0)
 {
 	// std::cout << "Constructor with size of PmergeMe" << std::endl;
-	this->vect.reserve(numberOfElement);
+	this->vect.reserve(startingSize);
 	this->show_short_args = true;
 }
 
@@ -33,6 +43,9 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 		return *this;
 	this->vect = other.vect;
 	this->lst = other.lst;
+	this->levelOfRecursion = other.levelOfRecursion;
+	this->numberOfElements = other.numberOfElements;
+	this->comparison_count_vect = other.comparison_count_vect;
 	return *this;
 }
 
@@ -195,17 +208,53 @@ bool PmergeMe::verifyOrder(const Container &cont) const
 	return true;
 }
 
-bool PmergeMe::areSameSize(void) const
+// bool PmergeMe::areSameSize(void) const
+// {
+// 	return this->vect.size() == this->lst.size();
+// }
+
+void PmergeMe::printPairs(const typeVect &vec, size_t pairSize) const
 {
-	return this->vect.size() == this->lst.size();
+	size_t pairCount = vec.size() / pairSize;
+	std::cout << "______Level " << levelOfRecursion << " with pair size " << pairSize << "______" << std::endl;
+	for(size_t i = 0; i < pairCount * pairSize; i += pairSize)
+	{
+		std::cout << i / pairSize << "/" << pairCount - 1 << ": ";
+		for (size_t j = 0; j < pairSize && i + j < vec.size(); ++j)
+		{
+			if (USE_COLOR && (j == pairSize / 2 - 1 || j == pairSize - 1))
+				std::cout << Color::Red << vec[i + j] << " " << Color::Color_Off;
+			else
+				std::cout << vec[i + j] << " ";
+		}
+		std::cout << std::endl;
+	}
+	if (pairCount * pairSize < vec.size())
+	{
+		std::cout << "Straggler: ";
+		for(size_t i = pairCount * pairSize; i < vec.size(); ++i)
+			std::cout << vec[i] << " ";
+		std::cout << std::endl;
+	}
 }
 
 void PmergeMe::sort_FJMI_vect(void)
 {
 	size_t comparison_count = 0;
 
-	size_t start_size = this->vect.size();
-	sort_FJMI_vect_recursive(this->vect, comparison_count);
+	const size_t start_size = this->vect.size();
+	if (start_size <= 1)
+		return;
+
+	// Phase 1: recursive pairing
+	splitIntoPairsRecursive<typeVect>(this->vect, 2, comparison_count);
+
+	// Determine max group size reached by phase 1
+	size_t maxGroupSize = 2;
+	while (start_size / (maxGroupSize * 2) >= 2)
+		maxGroupSize *= 2;
+
+	// sort_FJMI_vect_recursive(this->vect, comparison_count);
 	if (start_size != this->vect.size())
 	{
 		// if (DEBUG_LEVEL >= INFO)
@@ -232,7 +281,7 @@ void PmergeMe::sort_FJMI_vect_recursive(typeVect &temp_vec, size_t &comparison_c
 	std::vector<std::pair<typeElement, typeElement> > pairs;
 	typeElement oddElement = 0;
 	bool hasOddElement = false;
-	createPairs(temp_vec, pairs, comparison_count, oddElement, hasOddElement);
+	// createPairs(temp_vec, pairs, comparison_count, oddElement, hasOddElement);
 
 	/* //= Phase 2 =//
 	Recursively sort the larger elements of each pair in ascending order */
@@ -297,7 +346,7 @@ void PmergeMe::sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_co
 	std::vector<std::pair<typeElement, typeElement> > pairs;
 	typeElement oddElement = 0;
 	bool hasOddElement = false;
-	createPairs(temp_lst, pairs, comparison_count, oddElement, hasOddElement);
+	// createPairs(temp_lst, pairs, comparison_count, oddElement, hasOddElement);
 	
 	/* //= Phase 2 =//
 	Recursively sort the larger elements of each pair in ascending order */
