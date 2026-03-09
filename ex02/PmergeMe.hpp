@@ -103,7 +103,7 @@ public:
 	template <typename Container>
 	bool verifyOrder(const Container &cont) const;
 	template <typename Container>
-	void splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
+	size_t splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
 	template <typename Container>
 	void printPairs(const Container &container, size_t pairSize) const;
 

@@ -138,14 +138,8 @@ void PmergeMe::sort_FJMI_vect(void)
 		return;
 
 	// Phase 1: recursive pairing
-	splitIntoPairsRecursive<typeVect>(this->vect, 2, comparison_count);
-
-	// Determine max group size reached by phase 1
-	size_t maxGroupSize = 2;
-	while (start_size / (maxGroupSize * 2) >= 2)
-		maxGroupSize *= 2;
-
-	// sort_FJMI_vect_recursive(this->vect, comparison_count);
+	size_t maxGroupSize = splitIntoPairsRecursive<typeVect>(this->vect, 2, comparison_count);
+	(void)maxGroupSize;
 	if (start_size != this->vect.size())
 	{
 		// if (DEBUG_LEVEL >= INFO)

@@ -3,6 +3,7 @@
 
 #include "PmergeMe.hpp"
 #include <cstdlib>
+#include <cmath>
 
 template <typename T>
 void PmergeMe::printContainer(const T& container, bool useIndex, const char *separator)
@@ -248,13 +249,12 @@ void PmergeMe::printPairs(const Container &container, size_t pairSize) const
         std::cout << std::endl;
     }
 }
-
 template <typename Container>
-void PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count)
+size_t PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count)
 {
     size_t pairCount = container.size() / pairSize;
     if (pairCount < 2)
-        return;
+        return pairSize;
 
     size_t halfSize = pairSize / 2;
 
@@ -283,6 +283,7 @@ void PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, si
     printPairs(container, pairSize);
     levelOfRecursion++;
     splitIntoPairsRecursive(container, pairSize * 2, comparison_count);
+	return std::pow(2, levelOfRecursion);
 }
 
 #endif // PMERGEME_TPP
