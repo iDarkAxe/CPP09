@@ -46,16 +46,6 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 	return *this;
 }
 
-// const PmergeMe::typeVect &PmergeMe::getVector(void) const
-// {
-// 	return this->vect;
-// }
-
-// const PmergeMe::typeList &PmergeMe::getList(void) const
-// {
-// 	return this->lst;
-// }
-
 void PmergeMe::clear(void)
 {
 	this->vect.clear();
@@ -124,11 +114,6 @@ void PmergeMe::storeInVectFromList(void)
 	vect.assign(lst.begin(), lst.end());
 }
 
-// bool PmergeMe::areSameSize(void) const
-// {
-// 	return this->vect.size() == this->lst.size();
-// }
-
 void PmergeMe::sort_FJMI_vect(void)
 {
 	size_t comparison_count = 0;
@@ -140,6 +125,7 @@ void PmergeMe::sort_FJMI_vect(void)
 	// Phase 1: recursive pairing
 	size_t maxGroupSize = splitIntoPairsRecursive<typeVect>(this->vect, 2, comparison_count);
 	(void)maxGroupSize;
+
 	if (start_size != this->vect.size())
 	{
 		// if (DEBUG_LEVEL >= INFO)
@@ -151,113 +137,6 @@ void PmergeMe::sort_FJMI_vect(void)
 		std::cerr << "Vector is not sorted correctly!" << std::endl;
 	}
 	this->comparison_count_vect.push_back(comparison_count);
-}
-
-void PmergeMe::sort_FJMI_vect_recursive(typeVect &temp_vec, size_t &comparison_count)
-{
-	if (DEBUG_LEVEL >= DEBUG)
-		std::cout << "Recursive call with vector of size " << temp_vec.size() << std::endl;
-	if (temp_vec.size() <= 1)
-		return;
-
-	/* //= Phase 1 =//
-	Group the elements into pairs
-	and leave the last if odd number of elements. */
-	std::vector<std::pair<typeElement, typeElement> > pairs;
-	typeElement oddElement = 0;
-	bool hasOddElement = false;
-	// createPairs(temp_vec, pairs, comparison_count, oddElement, hasOddElement);
-
-	/* //= Phase 2 =//
-	Recursively sort the larger elements of each pair in ascending order */
-	typeVect larger;
-	typeVect smaller;
-
-	for (std::vector<std::pair<typeElement, typeElement> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
-	{
-		larger.push_back(it->second);
-		smaller.push_back(it->first);
-	}
-
-	// Recursive sort of the larger elements
-	if (larger.size() > 1)
-		sort_FJMI_vect_recursive(larger, comparison_count);
-
-	//= Phase 3 : Insertion =//
-	// Start with the (recursively) sorted larger chain
-	typeVect result(larger.begin(), larger.end());
-
-	// Insert ALL smaller elements (including index 0) into the full sorted range
-	for (size_t i = 0; i < smaller.size(); ++i)
-		binaryInsertContainer(result, smaller[i], result.size(), comparison_count);
-
-	// Insert possible odd element at the end
-	if (hasOddElement)
-		binaryInsertContainer(result, oddElement, result.size(), comparison_count);
-
-	temp_vec = result;
-}
-
-void PmergeMe::sort_FJMI_lst(void)
-{
-	size_t comparison_count = 0;
-
-	size_t start_size = this->lst.size();
-	sort_FJMI_lst_recursive(this->lst, comparison_count);
-	if (start_size != this->lst.size())
-	{
-		// if (DEBUG_LEVEL >= INFO)
-		std::cerr << "Error: List size changed during sorting! Before: " << start_size << ", After: " << this->lst.size() << std::endl;
-	}
-	if (!verifyOrder(this->lst))
-	{
-		// if (DEBUG_LEVEL >= INFO)
-		std::cerr << "List is not sorted correctly!" << std::endl;
-	}
-	this->comparison_count_vect.push_back(comparison_count);
-}
-
-void PmergeMe::sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_count)
-{
-
-	if (DEBUG_LEVEL >= DEBUG)
-		std::cout << "Recursive call with list of size " << temp_lst.size() << std::endl;
-	if (temp_lst.size() <= 1)
-		return;
-
-	/* //= Phase 1 =//
-	Group the elements into pairs
-	and leave the last if odd number of elements. */
-	std::vector<std::pair<typeElement, typeElement> > pairs;
-	typeElement oddElement = 0;
-	bool hasOddElement = false;
-	// createPairs(temp_lst, pairs, comparison_count, oddElement, hasOddElement);
-	
-	/* //= Phase 2 =//
-	Recursively sort the larger elements of each pair in ascending order */
-	typeList larger;
-	typeList smaller;
-
-	for (std::vector<std::pair<typeElement, typeElement> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
-	{
-		larger.push_back(it->second);
-		smaller.push_back(it->first);
-	}
-
-	// Recursive sort of the larger elements
-	if (larger.size() > 1)
-		sort_FJMI_lst_recursive(larger, comparison_count);
-
-	//= Phase 3 : Insertion =//
-	typeList result(larger.begin(), larger.end());
-	// Insert ALL smaller elements into the full sorted range
-	for (typeList::const_iterator it_sm = smaller.begin(); it_sm != smaller.end(); ++it_sm)
-		binaryInsertContainer(result, *it_sm, result.size(), comparison_count);
-
-	if (hasOddElement)
-		binaryInsertContainer(result, oddElement, result.size(), comparison_count);
-
-	temp_lst = result;
 }
 
 const char *PmergeMe::ArgumentEmptyException::what() const throw()

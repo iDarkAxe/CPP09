@@ -48,10 +48,6 @@ public:
 	static size_t max_short_args;
 
 //= Methods =//
-private:
-	void sort_FJMI_vect_recursive(typeVect &temp_vec, size_t &comparison_count);
-	void sort_FJMI_lst_recursive(typeList &temp_lst, size_t &comparison_count);
-
 public:
 	// Orthodox Canonical Form : Constructors / Destructors / Operators
 	PmergeMe();
@@ -60,8 +56,6 @@ public:
 	PmergeMe(const PmergeMe &f);
 	PmergeMe &operator=(const PmergeMe &other);
 
-	// const typeVect &getVector(void) const;
-	// const typeList &getList(void) const;
 	void clear(void);
 	void printAllVect(void) const;
 	void printShortVect(void) const;
@@ -103,10 +97,7 @@ public:
 	template <typename Container>
 	bool verifyOrder(const Container &cont) const;
 	template <typename Container>
-	size_t splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
-	template <typename Container>
 	void printPairs(const Container &container, size_t pairSize) const;
-
 private:
 	template <typename Container>
 	Container generateJacobsthalSequence(size_t n);
@@ -115,7 +106,7 @@ private:
 	template <typename Container>
 	Container buildJacobsthalOrder(size_t size);
 	template <typename Container>
-	void createPairs(const Container &cont, std::vector<std::pair<typeElement, typeElement> > &pairs, size_t &comparison_count, typeElement &oddElement, bool &hasOddElement);
+	size_t splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
 };
 
 #include "PmergeMe.tpp"
