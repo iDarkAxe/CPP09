@@ -73,6 +73,8 @@ $(P_OBJ)%.o: $(P_SRC)%.cpp $(INCS)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(DEPENDANCIES) $(DEBUG_STATE) -I $(P_INC) -c $< -o $@
 
+test:
+	$(CXX) $(CXXFLAGS) -o formula findNumberOfComparisons.cpp
 #############################################################################################
 #                                                                                           #
 #                                      Other RULES                                          #
