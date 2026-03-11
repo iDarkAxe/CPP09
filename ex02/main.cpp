@@ -25,7 +25,7 @@ int main(int argc, const char **argv)
 		}
 		else
 			std::cout << "Error\n";
-		return (0);
+		return (1);
 	}
 	PmergeMe pmergeme(static_cast<size_t>(argc - 1));
 	try 
@@ -33,14 +33,25 @@ int main(int argc, const char **argv)
 		// pmergeme.show_short_args = false;
 		// pmergeme.max_short_args = 4;
 
-		// Storing values in vector
 		struct timeval start_tv, end_tv;
-		long microseconds_vect;
-		long microseconds_list;
-		#if COUNT_TIME_WITH_STORE == 1
+		long microseconds_vect = 0;
+		long microseconds_list = 0;
+
+		// Storing values in vector
 		gettimeofday(&start_tv, NULL);
-		#endif
 		pmergeme.storeInVect(&argv[1]);
+		gettimeofday(&end_tv, NULL);
+		microseconds_vect += delta_timeval(start_tv, end_tv);
+
+		// Storing values in list
+		gettimeofday(&start_tv, NULL);
+		#if USE_STORE_FROM == 1
+		pmergeme.storeInListFromVect();
+		#else
+		pmergeme.storeInList(&argv[1]);
+		#endif
+		gettimeofday(&end_tv, NULL);
+		microseconds_list += delta_timeval(start_tv, end_tv);
 
 		std::cout << "Before : ";
 		if (pmergeme.show_short_args)
@@ -49,29 +60,16 @@ int main(int argc, const char **argv)
 			pmergeme.printAllVect();
 
 		// Vector sorting
-		#if COUNT_TIME_WITH_STORE == 0
 		gettimeofday(&start_tv, NULL);
-		#endif
 		pmergeme.sort_FJMI_vect();
 		gettimeofday(&end_tv, NULL);
-		microseconds_vect = delta_timeval(start_tv, end_tv);
-		return (0); //<--------------------------------------------------- testing line
-		// Storing values in list
-		#if USE_STORE_FROM == 1
-		gettimeofday(&start_tv, NULL);
-		pmergeme.storeInListFromVect();
-		#else // USE_STORE_FROM == 0
-		gettimeofday(&start_tv, NULL);
-		pmergeme.storeInList(&argv[1]);
-		#endif
+		microseconds_vect += delta_timeval(start_tv, end_tv);
 
 		// List sorting
-		#if COUNT_TIME_WITH_STORE == 0
 		gettimeofday(&start_tv, NULL);
-		#endif
 		pmergeme.sort_FJMI_lst();
 		gettimeofday(&end_tv, NULL);
-		microseconds_list = delta_timeval(start_tv, end_tv);
+		microseconds_list += delta_timeval(start_tv, end_tv);
 
 		std::cout << "After :  ";
 		if (pmergeme.show_short_args)
@@ -82,20 +80,20 @@ int main(int argc, const char **argv)
 		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << microseconds_vect << " us" << std::endl;
 
 		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::list : " << microseconds_list << " us" << std::endl;
+		
+		if (pmergeme.size_vect() != pmergeme.size_lst() || pmergeme.size_vect() != static_cast<size_t>(argc - 1))
+		{
+			std::cerr << "Error: Vector and List sizes differ after sorting! Vector size: " << pmergeme.size_vect() << ", List size: " << pmergeme.size_lst() << std::endl;
+		}
 
-		if (DEBUG_LEVEL >= INFO)
-		{
-			std::cout << "Nbr of Comparisons :" << std::endl;
-			PmergeMe::printContainer(pmergeme.comparison_count_vect);
-		}
-		if (DEBUG_LEVEL >= DEBUG)
-		{
-			std::cout << "Vect :" << std::endl;
-			pmergeme.printAllVect();
-			std::cout << "\n";
-			std::cout << "List :" << std::endl;
-			pmergeme.printAllList();
-		}
+		std::cout << "Nbr of Comparisons :" << std::endl;
+		PmergeMe::printContainer(pmergeme.comparison_count_vect);
+		
+		// std::cout << "Vect :" << std::endl;
+		// pmergeme.printAllVect();
+		// std::cout << "\n";
+		// std::cout << "List :" << std::endl;
+		// pmergeme.printAllList();
 	}
 	catch(const std::exception& e)
 	{
@@ -105,6 +103,7 @@ int main(int argc, const char **argv)
 			std::cerr << "Error" << std::endl;
 		return (1);
 	}
+	return (0);
 }
 
 long delta_timeval(const struct timeval &start, const struct timeval &end)

@@ -25,6 +25,6 @@ int main(int argc, char *argv[])
 		n = atoi(argv[1]);
 	int result = F(n);
 	std::cout << "F(" << n << ") = " << result << std::endl;
-	std::cout << "Le nombre de comparaisons max nécessaires pour trier " << n << " éléments avec l'algorithme de Ford-Johnson est : " << result << std::endl;
+	// std::cout << "Le nombre de comparaisons max nécessaires pour trier " << n << " éléments avec l'algorithme de Ford-Johnson est : " << result << std::endl;
 	return 0;
 }

@@ -1,142 +1,66 @@
 #include "PmergeMe.hpp"
-#include <iostream>
-#include <sstream>
-
-namespace Color {
-	const bool use_color = 1;
-	// Text Reset;
-	const char *Color_Off="\033[0m";
-	// Regular Colors
-	const char *Red="\033[0;31m";
-}
-
-size_t PmergeMe::max_short_args = 4;
-
-PmergeMe::PmergeMe() : levelOfRecursion(0), numberOfElements(0)
-{
-	// std::cout << "Default Constructor of PmergeMe" << std::endl;
-	this->show_short_args = true;
-}
-
-PmergeMe::PmergeMe(size_t startingSize) : levelOfRecursion(0), numberOfElements(0)
-{
-	// std::cout << "Constructor with size of PmergeMe" << std::endl;
-	this->vect.reserve(startingSize);
-	this->show_short_args = true;
-}
-
-PmergeMe::~PmergeMe()
-{
-}
-
-PmergeMe::PmergeMe(const PmergeMe &f)
-{
-	*this = f;
-}
-
-PmergeMe &PmergeMe::operator=(const PmergeMe &other)
-{
-	if (this == &other)
-		return *this;
-	this->vect = other.vect;
-	this->lst = other.lst;
-	this->levelOfRecursion = other.levelOfRecursion;
-	this->numberOfElements = other.numberOfElements;
-	this->comparison_count_vect = other.comparison_count_vect;
-	return *this;
-}
-
-void PmergeMe::clear(void)
-{
-	this->vect.clear();
-	this->lst.clear();
-	this->comparison_count_vect.clear();
-	this->numberOfElements = 0;
-}
 
 /**
- * @brief Print all elements in the vector
- */
-void PmergeMe::printAllVect(void) const
-{
-	printContainer(this->vect);
-}
-
-/**
- * @brief Print some elements in the vector
- */
-void PmergeMe::printShortVect(void) const
-{
-	printShort(this->vect);
-}
-
-/**
- * @brief Print all elements in the list
- */
-void PmergeMe::printAllList(void) const
-{
-	printContainer(this->lst);
-}
-
-/**
- * @brief Store in the vector container
+ * @brief Generate the Jacobsthal sequence up to a given number
+ * see : https://en.wikipedia.org/wiki/Jacobsthal_number
  *
- * @param[in] array array of strings
+ * @param[in,out] n The upper limit for the sequence
+ * @return T The generated Jacobsthal sequence
  */
-void PmergeMe::storeInVect(const char *array[])
+PmergeMe::typeVect PmergeMe::generateJacobsthalSequence(size_t n)
 {
-	storeInLoop(this->vect, array);
-}
+	typeVect jacobsthal;
 
-/**
- * @brief Store in the list container
- *
- * @param[in] array array of strings
- */
-void PmergeMe::storeInList(const char *array[])
-{
-	storeInLoop(this->lst, array);
-}
-
-void PmergeMe::storeValues(const char *array[])
-{
-	storeInVect(array);
-	storeInListFromVect();
-}
-
-void PmergeMe::storeInListFromVect(void)
-{
-	lst.assign(vect.begin(), vect.end());
-}
-
-void PmergeMe::storeInVectFromList(void)
-{
-	vect.assign(lst.begin(), lst.end());
-}
-
-void PmergeMe::sort_FJMI_vect(void)
-{
-	size_t comparison_count = 0;
-
-	const size_t start_size = this->vect.size();
-	if (start_size <= 1)
-		return;
-
-	// Phase 1: recursive pairing
-	size_t maxGroupSize = splitIntoPairsRecursive<typeVect>(this->vect, 2, comparison_count);
-	(void)maxGroupSize;
-
-	if (start_size != this->vect.size())
+	if (n == 0)
+		return jacobsthal;
+	jacobsthal.push_back(1);
+	jacobsthal.push_back(1);
+	if (n == 1)
+		return jacobsthal;
+	jacobsthal.push_back(3);
+	size_t prev1 = 1;
+	size_t prev2 = 3;
+	size_t next;
+	while (true)
 	{
-		// if (DEBUG_LEVEL >= INFO)
-		std::cerr << "Error: Vector size changed during sorting! Before: " << start_size << ", After: " << this->vect.size() << std::endl;
+		next = prev2 + 2 * prev1;
+		if (next > n)
+			break;
+		jacobsthal.push_back(next);
+		prev1 = prev2;
+		prev2 = next;
 	}
-	if (!verifyOrder(this->vect))
-	{
-		// if (DEBUG_LEVEL >= INFO)
-		std::cerr << "Vector is not sorted correctly!" << std::endl;
-	}
-	this->comparison_count_vect.push_back(comparison_count);
+	return jacobsthal;
+}
+
+PmergeMe::typeVect PmergeMe::buildJacobsthalOrder(size_t size)
+{
+    typeVect order;
+    if (size == 0)
+		return order;
+
+    typeVect jacob = generateJacobsthalSequence(size);
+    size_t last_pos = 1;
+    
+    for (size_t i = 2; i < jacob.size(); ++i)
+    {
+        size_t current_jacob = jacob[i];
+        size_t val = current_jacob;
+        while (val > last_pos)
+        {
+            if (val <= size)
+                order.push_back(val);
+            val--;
+        }
+        last_pos = current_jacob;
+    }
+    size_t val = size;
+    while (val > last_pos)
+    {
+        order.push_back(val);
+        val--;
+    }
+    return order;
 }
 
 const char *PmergeMe::ArgumentEmptyException::what() const throw()
@@ -152,4 +76,14 @@ const char *PmergeMe::ArgumentInvalidException::what() const throw()
 const char *PmergeMe::DuplicateException::what() const throw()
 {
 	return "There is a duplicate";
+}
+
+const char *PmergeMe::ContainerChangedSizeException::what() const throw()
+{
+	return "The container size has changed";
+}
+
+const char *PmergeMe::ContainerNotSortedException::what() const throw()
+{
+	return "The container is not sorted";
 }

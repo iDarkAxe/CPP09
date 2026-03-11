@@ -5,7 +5,6 @@
 #include <list>
 #include <set>
 #include <string>
-#include <stdint.h>
 #include <iostream>
 
 enum debug_level
@@ -16,7 +15,7 @@ enum debug_level
 };
 
 #ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL NOTHING
+#define DEBUG_LEVEL INFO
 #endif
 
 #ifndef THROW_ERROR_IF_DUPLICATE
@@ -36,11 +35,11 @@ private:
 	typedef unsigned int typeElement;
 	typedef std::vector<typeElement> typeVect;
 	typedef std::list<typeElement> typeList;
+	typedef std::set<typeElement> typeSet;
 	typeVect vect;
 	typeList lst;
 
 public:
-	typedef std::set<typeElement> typeSet;
 	std::vector<size_t> comparison_count_vect;
 	size_t levelOfRecursion;
 	size_t numberOfElements;
@@ -60,16 +59,17 @@ public:
 	void printAllVect(void) const;
 	void printShortVect(void) const;
 	void printAllList(void) const;
-	template <typename T>
-	void storeInLoop(T &container, const char *array[]);
+
 	void storeInVect(const char *array[]);
 	void storeInList(const char *array[]);
-	void storeValues(const char *array[]);
+	// void storeValues(const char *array[]);
 	void storeInListFromVect(void);
-	void storeInVectFromList(void);
+	// void storeInVectFromList(void);
 	void sort_FJMI_lst(void);
 	void sort_FJMI_vect(void);
 	// bool areSameSize(void) const;
+	size_t size_vect(void) const;
+	size_t size_lst(void) const;
 
 	//= Exceptions =//
 	class ArgumentEmptyException : public std::exception
@@ -87,6 +87,16 @@ public:
 	public:
 		const char *what() const throw();
 	};
+	class ContainerChangedSizeException : public std::exception
+	{
+	public:
+		const char *what() const throw();
+	};
+	class ContainerNotSortedException : public std::exception
+	{
+	public:
+		const char *what() const throw();
+	};
 
 public:
 //= Templates =//
@@ -98,15 +108,27 @@ public:
 	bool verifyOrder(const Container &cont) const;
 	template <typename Container>
 	void printPairs(const Container &container, size_t pairSize) const;
+	template <typename Container>
+	void sort_FJMI(Container &cont);
 private:
-	template <typename Container>
-	Container generateJacobsthalSequence(size_t n);
-	template <typename Container>
-	void binaryInsertContainer(Container &temp_container, typename Container::value_type value, size_t limit, size_t &comparison_count);
-	template <typename Container>
-	Container buildJacobsthalOrder(size_t size);
+	template <typename T>
+	void storeInLoop(T &container, const char *array[]);
+	typeVect generateJacobsthalSequence(size_t n);
+	typeVect buildJacobsthalOrder(size_t size);
 	template <typename Container>
 	size_t splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
+	template <typename Container>
+	size_t mergeInsertUnwindLevel(Container &container, size_t maxGroupSize, size_t &comparison_count);
+	template <typename Container>
+	void extractGroups(const Container &container, size_t halfSize,
+		std::vector<Container> &mainGroups, std::vector<Container> &pendGroups,
+		Container &stragglerGroup, bool &hasStragglerGroup, Container &remainder);
+	template <typename Container>
+	void insertPendGroups(std::vector<Container> &mainGroups,
+		std::vector<Container> &pendGroups, size_t numPairsNow, size_t &comparison_count);
+	template <typename Container>
+	size_t binaryInsertGroup(std::vector<Container> &mainGroups,
+		const Container &group, size_t hi, size_t &comparison_count);
 };
 
 #include "PmergeMe.tpp"

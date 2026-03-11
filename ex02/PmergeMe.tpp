@@ -100,101 +100,6 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 	numberOfElements = i;
 }
 
-/**
- * @brief Insert a value into a sorted container using binary search
- *
- * @param[in,out] temp_container The container to insert into
- * @param[in] value The value to insert
- * @param[in] comparison_count number of comparison
- */
-template <typename Container>
-void PmergeMe::binaryInsertContainer(Container &temp_container, typename Container::value_type value, size_t limit, size_t &comparison_count)
-{
-	typename Container::iterator left = temp_container.begin();
-	typename Container::iterator right = temp_container.begin();
-	std::advance(right, std::min(limit, temp_container.size()));
-
-	while (left != right)
-	{
-		typename Container::iterator mid = left;
-		typename Container::difference_type dist = std::distance(left, right);
-		std::advance(mid, dist / 2);
-
-		comparison_count++;
-		if (*mid < value)
-			left = ++mid;
-		else
-			right = mid;
-	}
-
-	temp_container.insert(left, value);
-}
-
-/**
- * @brief Generate the Jacobsthal sequence up to a given number
- * see : https://en.wikipedia.org/wiki/Jacobsthal_number
- *
- * @param[in,out] n The upper limit for the sequence
- * @return T The generated Jacobsthal sequence
- */
-template <typename Container>
-Container PmergeMe::generateJacobsthalSequence(size_t n)
-{
-	Container jacobsthal;
-
-	if (n == 0)
-		return jacobsthal;
-	jacobsthal.push_back(1);
-	jacobsthal.push_back(1);
-	if (n == 1)
-		return jacobsthal;
-	jacobsthal.push_back(3);
-	size_t prev1 = 1;
-	size_t prev2 = 3;
-	size_t next;
-	while (true)
-	{
-		next = prev2 + 2 * prev1;
-		if (next > n)
-			break;
-		jacobsthal.push_back(next);
-		prev1 = prev2;
-		prev2 = next;
-	}
-	return jacobsthal;
-}
-
-template <typename Container>
-Container PmergeMe::buildJacobsthalOrder(size_t size)
-{
-    Container order;
-    if (size == 0)
-		return order;
-
-    Container jacob = generateJacobsthalSequence<Container>(size);
-    size_t last_pos = 1;
-    
-    for (size_t i = 2; i < jacob.size(); ++i)
-    {
-        size_t current_jacob = jacob[i];
-        size_t val = current_jacob;
-        while (val > last_pos)
-        {
-            if (val <= size)
-                order.push_back(val);
-            val--;
-        }
-        last_pos = current_jacob;
-    }
-    size_t val = size;
-    while (val > last_pos)
-    {
-        order.push_back(val);
-        val--;
-    }
-    return order;
-}
-
 template <typename Container>
 bool PmergeMe::verifyOrder(const Container &cont) const
 {
@@ -249,22 +154,23 @@ void PmergeMe::printPairs(const Container &container, size_t pairSize) const
         std::cout << std::endl;
     }
 }
+
 template <typename Container>
 size_t PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count)
 {
     size_t pairCount = container.size() / pairSize;
-    if (pairCount < 2)
-        return pairSize;
 
+    if (pairCount < 1)
+        return pairSize / 2;
     size_t halfSize = pairSize / 2;
 
+    // Phase 1: Compare and swap pairs so the larger element's group is second
     typename Container::iterator groupStart = container.begin();
     for (size_t p = 0; p < pairCount; ++p)
     {
-        typename Container::iterator it1 = groupStart;
         typename Container::iterator it2 = groupStart;
-        std::advance(it2, halfSize); // début de la 2e moitié
-        typename Container::iterator LastOfFirstHalf = it2; // sauvegarde avant avancement
+        std::advance(it2, halfSize);
+        typename Container::iterator LastOfFirstHalf = it2;
         --LastOfFirstHalf;
 
         typename Container::iterator LastOfSecondHalf = it2;
@@ -273,17 +179,205 @@ size_t PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, 
         comparison_count++;
         if (*LastOfFirstHalf > *LastOfSecondHalf)
         {
-            for (size_t j = 0; j < halfSize; ++j, ++it1, ++it2)
-                std::iter_swap(it1, it2); //same as std::swap(*it1, *it2) but for iterators
+            typename Container::iterator s1 = groupStart;
+            typename Container::iterator s2 = groupStart;
+            std::advance(s2, halfSize);
+            for (size_t j = 0; j < halfSize; ++j, ++s1, ++s2)
+                std::iter_swap(s1, s2);
         }
 
         std::advance(groupStart, pairSize);
     }
 
-    printPairs(container, pairSize);
+    if (DEBUG_LEVEL >= DEBUG)
+        printPairs(container, pairSize);
     levelOfRecursion++;
-    splitIntoPairsRecursive(container, pairSize * 2, comparison_count);
-	return std::pow(2, levelOfRecursion);
+
+    // Recurse with double pairSize (only if more than 1 pair to sort among winners)
+    if (pairCount >= 2)
+        splitIntoPairsRecursive(container, pairSize * 2, comparison_count);
+   
+    return std::pow(2, levelOfRecursion);
+}
+
+/**
+ * @brief Binary search and insert a group into the main chain by its key (last element).
+ * Searches in mainGroups[0..hi) and inserts at the found position.
+ */
+template <typename Container>
+size_t PmergeMe::binaryInsertGroup(std::vector<Container> &mainGroups,
+	const Container &group, size_t hi, size_t &comparison_count)
+{
+    typename Container::value_type key = group.back();
+    size_t lo = 0;
+
+    while (lo < hi)
+    {
+        size_t mid = lo + (hi - lo) / 2;
+        comparison_count++;
+        if (mainGroups[mid].back() < key)
+            lo = mid + 1;
+        else
+            hi = mid;
+    }
+    mainGroups.insert(mainGroups.begin()
+        + static_cast<typename std::vector<Container>::difference_type>(lo),
+        group);
+    return lo;
+}
+
+/**
+ * @brief Split a flat container into groups of halfSize, then separate them:
+ * - mainGroups: winners (second half of each pair, sorted by recursion)
+ * - pendGroups: losers (first half of each pair, each <= its paired winner)
+ * - stragglerGroup: last group if odd number of groups (unpaired)
+ * - remainder: leftover elements that don't fill a complete group
+ */
+template <typename Container>
+void PmergeMe::extractGroups(const Container &container, size_t halfSize,
+	std::vector<Container> &mainGroups, std::vector<Container> &pendGroups,
+	Container &stragglerGroup, bool &hasStragglerGroup, Container &remainder)
+{
+    size_t totalGroupsOfHalf = container.size() / halfSize;
+    bool hasOddGroup = (totalGroupsOfHalf % 2 != 0);
+    size_t numPairsNow = totalGroupsOfHalf / 2;
+
+    std::vector<Container> groups;
+    typename Container::const_iterator it = container.begin();
+    for (size_t g = 0; g < totalGroupsOfHalf; ++g)
+    {
+        Container grp;
+        for (size_t j = 0; j < halfSize; ++j, ++it)
+            grp.push_back(*it);
+        groups.push_back(grp);
+    }
+    while (it != container.end())
+    {
+        remainder.push_back(*it);
+        ++it;
+    }
+
+    for (size_t p = 0; p < numPairsNow; ++p)
+    {
+        pendGroups.push_back(groups[2 * p]);
+        mainGroups.push_back(groups[2 * p + 1]);
+    }
+
+    hasStragglerGroup = false;
+    if (hasOddGroup)
+    {
+        stragglerGroup = groups[totalGroupsOfHalf - 1];
+        hasStragglerGroup = true;
+    }
+}
+
+/**
+ * @brief Insert pend groups (b2, b3, ...) into the main chain using Jacobsthal order.
+ * b1 must already be inserted at front before calling this.
+ * Each b_k is binary-searched up to the position of its paired winner a_k,
+ * which keeps the search space optimal (power of 2).
+ * posOfWinner tracks how winner positions shift as insertions happen.
+ */
+template <typename Container>
+void PmergeMe::insertPendGroups(std::vector<Container> &mainGroups,
+	std::vector<Container> &pendGroups, size_t numPairsNow, size_t &comparison_count)
+{
+    size_t pendCount = pendGroups.size();
+    if (pendCount <= 1)
+        return;
+
+    std::vector<size_t> posOfWinner(numPairsNow);
+    for (size_t k = 0; k < numPairsNow; ++k)
+        posOfWinner[k] = k + 1;
+
+    std::vector<size_t> order;
+    {
+        typeVect jacobOrder = buildJacobsthalOrder(pendCount);
+        for (size_t i = 0; i < jacobOrder.size(); ++i)
+        {
+            size_t val = jacobOrder[i];
+            if (val >= 2 && val <= pendCount)
+                order.push_back(val);
+        }
+    }
+
+    for (size_t i = 0; i < order.size(); ++i)
+    {
+        size_t k = order[i] - 1;
+        size_t lo = binaryInsertGroup(mainGroups, pendGroups[k], posOfWinner[k], comparison_count);
+
+        for (size_t w = 0; w < numPairsNow; ++w)
+        {
+            if (posOfWinner[w] >= lo)
+                posOfWinner[w]++;
+        }
+    }
+}
+
+/**
+ * @brief Merge-insertion unwinding at one recursion level.
+ * Separates the container into main chain (winners) and pend (losers),
+ * inserts b1 at front for free, then inserts remaining pend and straggler
+ * using binary search. Rebuilds the flat container at the end.
+ *
+ * @param[in] maxGroupSize Size of a full pair at this level (= 2 * halfSize)
+ */
+template <typename Container>
+size_t PmergeMe::mergeInsertUnwindLevel(Container &container, size_t maxGroupSize, size_t &comparison_count)
+{
+    size_t halfSize = maxGroupSize / 2;
+    size_t numPairsNow = (container.size() / halfSize) / 2;
+
+    std::vector<Container> mainGroups;
+    std::vector<Container> pendGroups;
+    Container stragglerGroup;
+    bool hasStragglerGroup;
+    Container remainder;
+    extractGroups(container, halfSize, mainGroups, pendGroups,
+        stragglerGroup, hasStragglerGroup, remainder);
+
+    if (!pendGroups.empty())
+        mainGroups.insert(mainGroups.begin(), pendGroups[0]);
+
+    insertPendGroups(mainGroups, pendGroups, numPairsNow, comparison_count);
+
+    if (hasStragglerGroup)
+        binaryInsertGroup(mainGroups, stragglerGroup, mainGroups.size(), comparison_count);
+
+    container.clear();
+    for (size_t g = 0; g < mainGroups.size(); ++g)
+    {
+        for (typename Container::iterator grpIt = mainGroups[g].begin(); grpIt != mainGroups[g].end(); ++grpIt)
+            container.push_back(*grpIt);
+    }
+    for (typename Container::iterator remIt = remainder.begin(); remIt != remainder.end(); ++remIt)
+        container.push_back(*remIt);
+
+    return halfSize;
+}
+
+template <typename Container>
+void PmergeMe::sort_FJMI(Container &cont)
+{
+	size_t comparison_count = 0;
+	levelOfRecursion = 0;
+
+	const size_t start_size = cont.size();
+	if (start_size <= 1)
+		return;
+
+	// Phase 1: recursive pairing
+	size_t maxGroupSize = splitIntoPairsRecursive<Container>(cont, 2, comparison_count);
+
+	// Phase 2: merge-insertion unwinding, from largest group size down to 2
+	for (size_t groupSize = maxGroupSize; groupSize >= 2; groupSize /= 2)
+		mergeInsertUnwindLevel<Container>(cont, groupSize, comparison_count);
+	if (start_size != cont.size())
+        throw ContainerChangedSizeException();
+	if (!verifyOrder(cont))
+        throw ContainerNotSortedException();
+	this->comparison_count_vect.push_back(comparison_count);
+	levelOfRecursion = 0;
 }
 
 #endif // PMERGEME_TPP
