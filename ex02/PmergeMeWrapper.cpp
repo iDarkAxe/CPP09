@@ -2,7 +2,7 @@
 #include <iostream>
 
 namespace Color {
-	const bool use_color = 1;
+	const bool use_color = true;
 	// Text Reset;
 	const char *Color_Off="\033[0m";
 	// Regular Colors

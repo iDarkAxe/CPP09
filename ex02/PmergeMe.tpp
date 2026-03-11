@@ -11,7 +11,7 @@ void PmergeMe::printContainer(const T& container, bool useIndex, const char *sep
 	if (useIndex)
 	{
 		size_t index = 0;
-		for (typename T::const_iterator it = container.begin(); it != container.end(); it++)
+		for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
 		{
 			std::cout << "it[" << index << "] = " << *it << std::endl;
 			index++;
@@ -75,7 +75,7 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 			throw ArgumentInvalidException();
 		}
 		value = static_cast<typeElement>(strtoul(array[i], &pointer, 10));
-		if (&pointer == &array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' '))
+		if (pointer == array[i] || pointer == NULL || (*pointer != 0 && *pointer != ' '))
 		{
 			if (DEBUG_LEVEL >= DEBUG)
 			{

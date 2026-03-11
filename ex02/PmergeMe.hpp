@@ -38,10 +38,10 @@ private:
 	typedef std::set<typeElement> typeSet;
 	typeVect vect;
 	typeList lst;
+	size_t levelOfRecursion;
 
 public:
 	std::vector<size_t> comparison_count_vect;
-	size_t levelOfRecursion;
 	size_t numberOfElements;
 	bool show_short_args;
 	static size_t max_short_args;
@@ -101,7 +101,7 @@ public:
 public:
 //= Templates =//
 	template <typename T>
-	static void printContainer(const T &container, bool useIndex = 0, const char *separator = " ");
+	static void printContainer(const T &container, bool useIndex = false, const char *separator = " ");
 	template <typename T>
 	static void printShort(const T &container, const char *separator = " ");
 	template <typename Container>
