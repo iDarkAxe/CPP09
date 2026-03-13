@@ -346,12 +346,8 @@ size_t PmergeMe::mergeInsertUnwindLevel(Container &container, size_t maxGroupSiz
 
     container.clear();
     for (size_t g = 0; g < mainGroups.size(); ++g)
-    {
-        for (typename Container::iterator grpIt = mainGroups[g].begin(); grpIt != mainGroups[g].end(); ++grpIt)
-            container.push_back(*grpIt);
-    }
-    for (typename Container::iterator remIt = remainder.begin(); remIt != remainder.end(); ++remIt)
-        container.push_back(*remIt);
+        container.insert(container.end(), mainGroups[g].begin(), mainGroups[g].end());
+    container.insert(container.end(), remainder.begin(), remainder.end());
 
     return halfSize;
 }
