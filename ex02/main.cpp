@@ -1,6 +1,7 @@
 #include "PmergeMe.hpp"
 #include <iostream>
 #include <sys/time.h>
+#include <iomanip>
 #include <string>
 /* Tester prototype */
 int tester(void);
@@ -76,10 +77,9 @@ int main(int argc, const char **argv)
 			pmergeme.printShortVect();
 		else
 			pmergeme.printAllVect();
-		
-		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << microseconds_vect << " us" << std::endl;
+		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::vector : " << std::setw(8) << microseconds_vect << " us" << std::endl;
 
-		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::list : " << microseconds_list << " us" << std::endl;
+		std::cout << "Time to process a range of " << pmergeme.numberOfElements << " elements with std::list   : " << std::setw(8) << microseconds_list << " us" << std::endl;
 		
 		if (pmergeme.size_vect() != pmergeme.size_lst() || pmergeme.size_vect() != static_cast<size_t>(argc - 1))
 		{
