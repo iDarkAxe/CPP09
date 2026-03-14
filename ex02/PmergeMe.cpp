@@ -1,5 +1,16 @@
 #include "PmergeMe.hpp"
 
+namespace Color {
+	const bool use_color = true;
+	// Text Reset;
+	const char *Color_Off="\033[0m";
+	// Regular Colors
+	const char *Red="\033[0;31m";
+}
+
+size_t PmergeMe::max_short_args = 4;
+bool PmergeMe::show_short_args = true;
+
 /**
  * @brief Generate the Jacobsthal sequence up to a given number
  * see : https://en.wikipedia.org/wiki/Jacobsthal_number

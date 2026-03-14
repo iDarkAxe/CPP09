@@ -35,7 +35,6 @@ INC = \
 SRC = \
 	main.cpp \
 	PmergeMe.cpp \
-	PmergeMeWrapper.cpp \
 
 LIBS = \
 

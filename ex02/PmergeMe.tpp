@@ -97,11 +97,10 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 		#endif
 		container.push_back(static_cast<typeElement>(value));
 	}
-	numberOfElements = i;
 }
 
 template <typename Container>
-bool PmergeMe::verifyOrder(const Container &cont) const
+bool PmergeMe::verifyOrder(const Container &cont)
 {
 	typeElement previous = 0;
 	previous = *cont.begin();
@@ -123,7 +122,7 @@ bool PmergeMe::verifyOrder(const Container &cont) const
 }
 
 template <typename Container>
-void PmergeMe::printPairs(const Container &container, size_t pairSize) const
+void PmergeMe::printPairs(const Container &container, size_t pairSize, size_t levelOfRecursion)
 {
     size_t pairCount = container.size() / pairSize;
     std::cout << "______Level " << levelOfRecursion << " with pair size " << pairSize << "______" << std::endl;
@@ -156,7 +155,7 @@ void PmergeMe::printPairs(const Container &container, size_t pairSize) const
 }
 
 template <typename Container>
-size_t PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count)
+size_t PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, size_t levelOfRecursion, size_t &comparison_count)
 {
     size_t pairCount = container.size() / pairSize;
 
@@ -190,14 +189,14 @@ size_t PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, 
     }
 
     if (DEBUG_LEVEL >= DEBUG)
-        printPairs(container, pairSize);
+        printPairs(container, pairSize, levelOfRecursion);
     levelOfRecursion++;
 
     // Recurse with double pairSize (only if more than 1 pair to sort among winners)
     if (pairCount >= 2)
-        splitIntoPairsRecursive(container, pairSize * 2, comparison_count);
-   
-    return std::pow(2, levelOfRecursion);
+        return splitIntoPairsRecursive(container, pairSize * 2, levelOfRecursion, comparison_count);
+
+    return pairSize;
 }
 
 /**
@@ -353,27 +352,25 @@ size_t PmergeMe::mergeInsertUnwindLevel(Container &container, size_t maxGroupSiz
 }
 
 template <typename Container>
-void PmergeMe::sort_FJMI(Container &cont)
+size_t PmergeMe::sort_FJMI(Container &cont)
 {
 	size_t comparison_count = 0;
-	levelOfRecursion = 0;
 
 	const size_t start_size = cont.size();
 	if (start_size <= 1)
-		return;
+		return 0;
 
 	// Phase 1: recursive pairing
-	size_t maxGroupSize = splitIntoPairsRecursive<Container>(cont, 2, comparison_count);
+	size_t maxGroupSize = splitIntoPairsRecursive<Container>(cont, 2, 0, comparison_count);
 
 	// Phase 2: merge-insertion unwinding, from largest group size down to 2
 	for (size_t groupSize = maxGroupSize; groupSize >= 2; groupSize /= 2)
 		mergeInsertUnwindLevel<Container>(cont, groupSize, comparison_count);
 	if (start_size != cont.size())
         throw ContainerChangedSizeException();
-	if (!verifyOrder(cont))
+    if (!verifyOrder(cont))
         throw ContainerNotSortedException();
-	this->comparison_count_vect.push_back(comparison_count);
-	levelOfRecursion = 0;
+    return comparison_count;
 }
 
 #endif // PMERGEME_TPP

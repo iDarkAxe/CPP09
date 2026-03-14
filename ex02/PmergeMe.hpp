@@ -31,46 +31,16 @@ namespace Color {
 class PmergeMe
 {
 //= Variables =//
-private:
-	typedef unsigned int typeElement;
-	typedef std::vector<typeElement> typeVect;
-	typedef std::list<typeElement> typeList;
-	typedef std::set<typeElement> typeSet;
-	typeVect vect;
-	typeList lst;
-	size_t levelOfRecursion;
-
 public:
-	std::vector<size_t> comparison_count_vect;
-	size_t numberOfElements;
-	bool show_short_args;
+	typedef unsigned int typeElement;
+	static bool show_short_args;
 	static size_t max_short_args;
+
+private:
+	typedef std::vector<typeElement> typeVect;
 
 //= Methods =//
 public:
-	// Orthodox Canonical Form : Constructors / Destructors / Operators
-	PmergeMe();
-	PmergeMe(size_t startingSize);
-	~PmergeMe();
-	PmergeMe(const PmergeMe &f);
-	PmergeMe &operator=(const PmergeMe &other);
-
-	void clear(void);
-	void printAllVect(void) const;
-	void printShortVect(void) const;
-	void printAllList(void) const;
-
-	void storeInVect(const char *array[]);
-	void storeInList(const char *array[]);
-	// void storeValues(const char *array[]);
-	void storeInListFromVect(void);
-	// void storeInVectFromList(void);
-	void sort_FJMI_lst(void);
-	void sort_FJMI_vect(void);
-	// bool areSameSize(void) const;
-	size_t size_vect(void) const;
-	size_t size_lst(void) const;
-
 	//= Exceptions =//
 	class ArgumentEmptyException : public std::exception
 	{
@@ -105,29 +75,30 @@ public:
 	template <typename T>
 	static void printShort(const T &container, const char *separator = " ");
 	template <typename Container>
-	bool verifyOrder(const Container &cont) const;
+	static bool verifyOrder(const Container &cont);
 	template <typename Container>
-	void printPairs(const Container &container, size_t pairSize) const;
+	static void printPairs(const Container &container, size_t pairSize, size_t levelOfRecursion);
 	template <typename Container>
-	void sort_FJMI(Container &cont);
-private:
+	static size_t sort_FJMI(Container &cont);
 	template <typename T>
-	void storeInLoop(T &container, const char *array[]);
-	typeVect generateJacobsthalSequence(size_t n);
-	typeVect buildJacobsthalOrder(size_t size);
+	static void storeInLoop(T &container, const char *array[]);
+
+private:
+	static typeVect generateJacobsthalSequence(size_t n);
+	static typeVect buildJacobsthalOrder(size_t size);
 	template <typename Container>
-	size_t splitIntoPairsRecursive(Container &container, size_t pairSize, size_t &comparison_count);
+	static size_t splitIntoPairsRecursive(Container &container, size_t pairSize, size_t levelOfRecursion, size_t &comparison_count);
 	template <typename Container>
-	size_t mergeInsertUnwindLevel(Container &container, size_t maxGroupSize, size_t &comparison_count);
+	static size_t mergeInsertUnwindLevel(Container &container, size_t maxGroupSize, size_t &comparison_count);
 	template <typename Container>
-	void extractGroups(const Container &container, size_t halfSize,
+	static void extractGroups(const Container &container, size_t halfSize,
 		std::vector<Container> &mainGroups, std::vector<Container> &pendGroups,
 		Container &stragglerGroup, bool &hasStragglerGroup, Container &remainder);
 	template <typename Container>
-	void insertPendGroups(std::vector<Container> &mainGroups,
+	static void insertPendGroups(std::vector<Container> &mainGroups,
 		std::vector<Container> &pendGroups, size_t numPairsNow, size_t &comparison_count);
 	template <typename Container>
-	size_t binaryInsertGroup(std::vector<Container> &mainGroups,
+	static size_t binaryInsertGroup(std::vector<Container> &mainGroups,
 		const Container &group, size_t hi, size_t &comparison_count);
 };
 
