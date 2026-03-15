@@ -11,6 +11,11 @@ namespace Color {
 size_t PmergeMe::max_short_args = 4;
 bool PmergeMe::show_short_args = true;
 
+PmergeMe::PmergeMe() {}
+PmergeMe::~PmergeMe() {}
+PmergeMe::PmergeMe(const PmergeMe &other) {(void)other;}
+PmergeMe &PmergeMe::operator=(const PmergeMe &other) {(void)other;return *this;}
+
 /**
  * @brief Generate the Jacobsthal sequence up to a given number
  * see : https://en.wikipedia.org/wiki/Jacobsthal_number
@@ -37,7 +42,7 @@ PmergeMe::typeVect PmergeMe::generateJacobsthalSequence(size_t n)
 		next = prev2 + 2 * prev1;
 		if (next > n)
 			break;
-		jacobsthal.push_back(next);
+		jacobsthal.push_back(static_cast<typeElement>(next));
 		prev1 = prev2;
 		prev2 = next;
 	}
@@ -60,7 +65,7 @@ PmergeMe::typeVect PmergeMe::buildJacobsthalOrder(size_t size)
         while (val > last_pos)
         {
             if (val <= size)
-                order.push_back(val);
+                order.push_back(static_cast<typeElement>(val));
             val--;
         }
         last_pos = current_jacob;
@@ -68,7 +73,7 @@ PmergeMe::typeVect PmergeMe::buildJacobsthalOrder(size_t size)
     size_t val = size;
     while (val > last_pos)
     {
-        order.push_back(val);
+        order.push_back(static_cast<typeElement>(val));
         val--;
     }
     return order;

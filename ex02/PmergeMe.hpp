@@ -40,6 +40,13 @@ private:
 	typedef std::vector<typeElement> typeVect;
 
 //= Methods =//
+private:
+	// Orthodox Canonical Form : Constructors / Destructors / Operators
+	PmergeMe();
+	~PmergeMe();
+	PmergeMe(const PmergeMe &f);
+	PmergeMe &operator=(const PmergeMe &other);
+	
 public:
 	//= Exceptions =//
 	class ArgumentEmptyException : public std::exception

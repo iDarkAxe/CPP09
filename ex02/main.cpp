@@ -3,14 +3,13 @@
 #include <sys/time.h>
 #include <iomanip>
 #include <string>
+
 /* Tester prototype */
 int tester(void);
 
+void print_example(const char* program_name);
 long delta_timeval(const struct timeval &start, const struct timeval &end);
 
-// int more(int argc, const char **argv);
-
-#define COUNT_TIME_WITH_STORE 1
 #define USE_STORE_FROM 0
 
 /* Mandatory main function */
@@ -20,16 +19,16 @@ int main(int argc, const char **argv)
 	if (argc < 2)
 	{
 		if (DEBUG_LEVEL >= INFO)
-		{
-			std::cout << "Usage: " << argv[0] << " \"[PositiveNumbers]\"\n" << "Ford-Johnson MergeInsert Sorter\n\n" << "[PositiveNumbers]:\n0-MAX_UNSIGNED_INT\t\tAll positive numbers (from 0 to the MAX_UNSIGNED_INT).\n\n" << "Example:\n" << argv[0] << "  3 5 9 7 4\n->\nBefore: 3 5 9 7 4\nAfter: 3 4 5 7 9\nTime to process a range of 5 elements with std::vector : 0.00031 us\nTime to process a range of 5 elements with std::list : 0.00014 us"  << '\n';
-		}
+			print_example(argv[0]);
 		else
 			std::cout << "Error\n";
 		return (1);
 	}
+	size_t numberOfArgs = static_cast<size_t>(argc - 1);
+	const char **array = &argv[1];
+
 	struct timeval start_tv, end_tv;
-	long microseconds_vect = 0;
-	long microseconds_list = 0;
+	long microseconds_vect = 0, microseconds_list = 0;
 	std::vector<PmergeMe::typeElement> vect;
 	std::vector<size_t> comparison_count_vect;
 	std::list<PmergeMe::typeElement> list;
@@ -41,7 +40,7 @@ int main(int argc, const char **argv)
 	{
 		// Storing values in vector
 		gettimeofday(&start_tv, NULL);
-		PmergeMe::storeInLoop(vect, &argv[1]);
+		PmergeMe::storeInLoop(vect, array);
 		gettimeofday(&end_tv, NULL);
 		microseconds_vect += delta_timeval(start_tv, end_tv);
 
@@ -50,7 +49,7 @@ int main(int argc, const char **argv)
 		#if USE_STORE_FROM == 1
 		list.assign(vect.begin(), vect.end());
 		#else
-		PmergeMe::storeInLoop(list, &argv[1]);
+		PmergeMe::storeInLoop(list, array);
 		#endif
 		gettimeofday(&end_tv, NULL);
 		microseconds_list += delta_timeval(start_tv, end_tv);
@@ -72,11 +71,11 @@ int main(int argc, const char **argv)
 
 		std::cout << "After :  ";
 		PmergeMe::printShort(vect);
-		std::cout << "Time to process a range of " << argc - 1 << " elements with std::vector : " << std::setw(8) << microseconds_vect << " us" << std::endl;
+		std::cout << "Time to process a range of " << numberOfArgs << " elements with std::vector : " << std::setw(8) << microseconds_vect << " us" << std::endl;
 
-		std::cout << "Time to process a range of " << argc - 1 << " elements with std::list   : " << std::setw(8) << microseconds_list << " us" << std::endl;
+		std::cout << "Time to process a range of " << numberOfArgs << " elements with std::list   : " << std::setw(8) << microseconds_list << " us" << std::endl;
 		
-		if (vect.size() != list.size() || vect.size() != static_cast<size_t>(argc - 1))
+		if (vect.size() != list.size() || vect.size() != numberOfArgs)
 		{
 			std::cerr << "Error: Vector and List sizes differ after sorting! Vector size: " << vect.size() << ", List size: " << list.size() << std::endl;
 		}
@@ -93,6 +92,20 @@ int main(int argc, const char **argv)
 		return (1);
 	}
 	return (0);
+}
+
+void print_example(const char* program_name)
+{
+	std::cout << "Usage: " << program_name << " \"[PositiveNumbers]\"\n"
+		<< "Ford-Johnson MergeInsert Sorter\n\n"
+		<< "[PositiveNumbers]:\n"
+		<< "0-MAX_UNSIGNED_INT\t\tAll positive numbers (from 0 to the MAX_UNSIGNED_INT).\n\n"
+		<< "Example:\n$> " 
+		<< program_name << "  3 5 9 7 4\n"
+		<< "Before: 3 5 9 7 4\n"
+		<< "After: 3 4 5 7 9\n"
+		<< "Time to process a range of 5 elements with std::vector : 0.00031 us\n"
+		<< "Time to process a range of 5 elements with std::list :   0.00014 us"  << '\n';
 }
 
 long delta_timeval(const struct timeval &start, const struct timeval &end)
