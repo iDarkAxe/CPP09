@@ -102,11 +102,13 @@ void PmergeMe::storeInLoop(T &container, const char *array[])
 template <typename Container>
 bool PmergeMe::verifyOrder(const Container &cont)
 {
-	typeElement previous = 0;
-	previous = *cont.begin();
+	if (cont.size() <= 1)
+		return true;
+	typename Container::const_iterator it = cont.begin();
+	typeElement previous = *it;
 	if (DEBUG_LEVEL >= DEBUG)
 		std::cout << "Testing correct order on container: " << &cont << std::endl;
-	for (typename Container::const_iterator it = cont.begin(); it != cont.end(); ++it)
+	for (; it != cont.end(); ++it)
 	{
 		if (DEBUG_LEVEL >= DEBUG)
 			std::cout << "Comparing " << previous << " and " << *it << std::endl;
@@ -124,79 +126,79 @@ bool PmergeMe::verifyOrder(const Container &cont)
 template <typename Container>
 void PmergeMe::printPairs(const Container &container, size_t pairSize, size_t levelOfRecursion)
 {
-    size_t pairCount = container.size() / pairSize;
-    std::cout << "______Level " << levelOfRecursion << " with pair size " << pairSize << "______" << std::endl;
+	size_t pairCount = container.size() / pairSize;
+	std::cout << "______Level " << levelOfRecursion << " with pair size " << pairSize << "______" << std::endl;
 
-    typename Container::const_iterator groupStart = container.begin();
-    for (size_t i = 0; i < pairCount; ++i)
-    {
-        std::cout << i << "/" << pairCount - 1 << ": ";
-        typename Container::const_iterator it = groupStart;
-        for (size_t j = 0; j < pairSize; ++j, ++it)
-        {
-            if (Color::use_color && (j == pairSize / 2 - 1 || j == pairSize - 1))
-                std::cout << Color::Red << *it << " " << Color::Color_Off;
-            else
-                std::cout << *it << " ";
-        }
-        std::cout << std::endl;
-        std::advance(groupStart, pairSize);
-    }
+	typename Container::const_iterator groupStart = container.begin();
+	for (size_t i = 0; i < pairCount; ++i)
+	{
+		std::cout << i << "/" << pairCount - 1 << ": ";
+		typename Container::const_iterator it = groupStart;
+		for (size_t j = 0; j < pairSize; ++j, ++it)
+		{
+			if (Color::use_color && (j == pairSize / 2 - 1 || j == pairSize - 1))
+				std::cout << Color::Red << *it << " " << Color::Color_Off;
+			else
+				std::cout << *it << " ";
+		}
+		std::cout << std::endl;
+		std::advance(groupStart, pairSize);
+	}
 
-    // Straggler
-    if (pairCount * pairSize < container.size())
-    {
-        std::cout << "Straggler: ";
-        typename Container::const_iterator it = groupStart;
-        while (it != container.end())
-            std::cout << *it++ << " ";
-        std::cout << std::endl;
-    }
+	// Straggler
+	if (pairCount * pairSize < container.size())
+	{
+		std::cout << "Straggler: ";
+		typename Container::const_iterator it = groupStart;
+		while (it != container.end())
+			std::cout << *it++ << " ";
+		std::cout << std::endl;
+	}
 }
 
 template <typename Container>
 size_t PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, size_t levelOfRecursion, size_t &comparison_count)
 {
-    size_t pairCount = container.size() / pairSize;
+	size_t pairCount = container.size() / pairSize;
 
-    if (pairCount < 1)
-        return pairSize / 2;
-    size_t halfSize = pairSize / 2;
+	if (pairCount < 1)
+		return pairSize / 2;
+	size_t halfSize = pairSize / 2;
 
-    // Phase 1: Compare and swap pairs so the larger element's group is second
-    typename Container::iterator groupStart = container.begin();
-    for (size_t p = 0; p < pairCount; ++p)
-    {
-        typename Container::iterator it2 = groupStart;
-        std::advance(it2, halfSize);
-        typename Container::iterator LastOfFirstHalf = it2;
-        --LastOfFirstHalf;
+	// Phase 1: Compare and swap pairs so the larger element's group is second
+	typename Container::iterator groupStart = container.begin();
+	for (size_t p = 0; p < pairCount; ++p)
+	{
+		typename Container::iterator it2 = groupStart;
+		std::advance(it2, halfSize);
+		typename Container::iterator LastOfFirstHalf = it2;
+		--LastOfFirstHalf;
 
-        typename Container::iterator LastOfSecondHalf = it2;
-        std::advance(LastOfSecondHalf, halfSize - 1);
+		typename Container::iterator LastOfSecondHalf = it2;
+		std::advance(LastOfSecondHalf, halfSize - 1);
 
-        comparison_count++;
-        if (*LastOfFirstHalf > *LastOfSecondHalf)
-        {
-            typename Container::iterator s1 = groupStart;
-            typename Container::iterator s2 = groupStart;
-            std::advance(s2, halfSize);
-            for (size_t j = 0; j < halfSize; ++j, ++s1, ++s2)
-                std::iter_swap(s1, s2);
-        }
+		comparison_count++;
+		if (*LastOfFirstHalf > *LastOfSecondHalf)
+		{
+			typename Container::iterator s1 = groupStart;
+			typename Container::iterator s2 = groupStart;
+			std::advance(s2, halfSize);
+			for (size_t j = 0; j < halfSize; ++j, ++s1, ++s2)
+				std::iter_swap(s1, s2);
+		}
 
-        std::advance(groupStart, pairSize);
-    }
+		std::advance(groupStart, pairSize);
+	}
 
-    if (DEBUG_LEVEL >= DEBUG)
-        printPairs(container, pairSize, levelOfRecursion);
-    levelOfRecursion++;
+	if (DEBUG_LEVEL >= DEBUG)
+		printPairs(container, pairSize, levelOfRecursion);
+	levelOfRecursion++;
 
-    // Recurse with double pairSize (only if more than 1 pair to sort among winners)
-    if (pairCount >= 2)
-        return splitIntoPairsRecursive(container, pairSize * 2, levelOfRecursion, comparison_count);
+	// Recurse with double pairSize (only if more than 1 pair to sort among winners)
+	if (pairCount >= 2)
+		return splitIntoPairsRecursive(container, pairSize * 2, levelOfRecursion, comparison_count);
 
-    return pairSize;
+	return pairSize;
 }
 
 /**
@@ -207,22 +209,22 @@ template <typename Container>
 size_t PmergeMe::binaryInsertGroup(std::vector<Container> &mainGroups,
 	const Container &group, size_t hi, size_t &comparison_count)
 {
-    typename Container::value_type key = group.back();
-    size_t lo = 0;
+	typename Container::value_type key = group.back();
+	size_t lo = 0;
 
-    while (lo < hi)
-    {
-        size_t mid = lo + (hi - lo) / 2;
-        comparison_count++;
-        if (mainGroups[mid].back() < key)
-            lo = mid + 1;
-        else
-            hi = mid;
-    }
-    mainGroups.insert(mainGroups.begin()
-        + static_cast<typename std::vector<Container>::difference_type>(lo),
-        group);
-    return lo;
+	while (lo < hi)
+	{
+		size_t mid = lo + (hi - lo) / 2;
+		comparison_count++;
+		if (mainGroups[mid].back() < key)
+			lo = mid + 1;
+		else
+			hi = mid;
+	}
+	mainGroups.insert(mainGroups.begin()
+		+ static_cast<typename std::vector<Container>::difference_type>(lo),
+		group);
+	return lo;
 }
 
 /**
@@ -237,37 +239,37 @@ void PmergeMe::extractGroups(const Container &container, size_t halfSize,
 	std::vector<Container> &mainGroups, std::vector<Container> &pendGroups,
 	Container &stragglerGroup, bool &hasStragglerGroup, Container &remainder)
 {
-    size_t totalGroupsOfHalf = container.size() / halfSize;
-    bool hasOddGroup = (totalGroupsOfHalf % 2 != 0);
-    size_t numPairsNow = totalGroupsOfHalf / 2;
+	size_t totalGroupsOfHalf = container.size() / halfSize;
+	bool hasOddGroup = (totalGroupsOfHalf % 2 != 0);
+	size_t numPairsNow = totalGroupsOfHalf / 2;
 
-    std::vector<Container> groups;
-    typename Container::const_iterator it = container.begin();
-    for (size_t g = 0; g < totalGroupsOfHalf; ++g)
-    {
-        Container grp;
-        for (size_t j = 0; j < halfSize; ++j, ++it)
-            grp.push_back(*it);
-        groups.push_back(grp);
-    }
-    while (it != container.end())
-    {
-        remainder.push_back(*it);
-        ++it;
-    }
+	std::vector<Container> groups;
+	typename Container::const_iterator it = container.begin();
+	for (size_t g = 0; g < totalGroupsOfHalf; ++g)
+	{
+		Container grp;
+		for (size_t j = 0; j < halfSize; ++j, ++it)
+			grp.push_back(*it);
+		groups.push_back(grp);
+	}
+	while (it != container.end())
+	{
+		remainder.push_back(*it);
+		++it;
+	}
 
-    for (size_t p = 0; p < numPairsNow; ++p)
-    {
-        pendGroups.push_back(groups[2 * p]);
-        mainGroups.push_back(groups[2 * p + 1]);
-    }
+	for (size_t p = 0; p < numPairsNow; ++p)
+	{
+		pendGroups.push_back(groups[2 * p]);
+		mainGroups.push_back(groups[2 * p + 1]);
+	}
 
-    hasStragglerGroup = false;
-    if (hasOddGroup)
-    {
-        stragglerGroup = groups[totalGroupsOfHalf - 1];
-        hasStragglerGroup = true;
-    }
+	hasStragglerGroup = false;
+	if (hasOddGroup)
+	{
+		stragglerGroup = groups[totalGroupsOfHalf - 1];
+		hasStragglerGroup = true;
+	}
 }
 
 /**
@@ -281,36 +283,36 @@ template <typename Container>
 void PmergeMe::insertPendGroups(std::vector<Container> &mainGroups,
 	std::vector<Container> &pendGroups, size_t numPairsNow, size_t &comparison_count)
 {
-    size_t pendCount = pendGroups.size();
-    if (pendCount <= 1)
-        return;
+	size_t pendCount = pendGroups.size();
+	if (pendCount <= 1)
+		return;
 
-    std::vector<size_t> posOfWinner(numPairsNow);
-    for (size_t k = 0; k < numPairsNow; ++k)
-        posOfWinner[k] = k + 1;
+	std::vector<size_t> posOfWinner(numPairsNow);
+	for (size_t k = 0; k < numPairsNow; ++k)
+		posOfWinner[k] = k + 1;
 
-    std::vector<size_t> order;
-    {
-        typeVect jacobOrder = buildJacobsthalOrder(pendCount);
-        for (size_t i = 0; i < jacobOrder.size(); ++i)
-        {
-            size_t val = jacobOrder[i];
-            if (val >= 2 && val <= pendCount)
-                order.push_back(val);
-        }
-    }
+	std::vector<size_t> order;
+	{
+		typeVect jacobOrder = buildJacobsthalOrder(pendCount);
+		for (size_t i = 0; i < jacobOrder.size(); ++i)
+		{
+			size_t val = jacobOrder[i];
+			if (val >= 2 && val <= pendCount)
+				order.push_back(val);
+		}
+	}
 
-    for (size_t i = 0; i < order.size(); ++i)
-    {
-        size_t k = order[i] - 1;
-        size_t lo = binaryInsertGroup(mainGroups, pendGroups[k], posOfWinner[k], comparison_count);
+	for (size_t i = 0; i < order.size(); ++i)
+	{
+		size_t k = order[i] - 1;
+		size_t lo = binaryInsertGroup(mainGroups, pendGroups[k], posOfWinner[k], comparison_count);
 
-        for (size_t w = 0; w < numPairsNow; ++w)
-        {
-            if (posOfWinner[w] >= lo)
-                posOfWinner[w]++;
-        }
-    }
+		for (size_t w = 0; w < numPairsNow; ++w)
+		{
+			if (posOfWinner[w] >= lo)
+				posOfWinner[w]++;
+		}
+	}
 }
 
 /**
@@ -324,31 +326,31 @@ void PmergeMe::insertPendGroups(std::vector<Container> &mainGroups,
 template <typename Container>
 size_t PmergeMe::mergeInsertUnwindLevel(Container &container, size_t maxGroupSize, size_t &comparison_count)
 {
-    size_t halfSize = maxGroupSize / 2;
-    size_t numPairsNow = (container.size() / halfSize) / 2;
+	size_t halfSize = maxGroupSize / 2;
+	size_t numPairsNow = (container.size() / halfSize) / 2;
 
-    std::vector<Container> mainGroups;
-    std::vector<Container> pendGroups;
-    Container stragglerGroup;
-    bool hasStragglerGroup;
-    Container remainder;
-    extractGroups(container, halfSize, mainGroups, pendGroups,
-        stragglerGroup, hasStragglerGroup, remainder);
+	std::vector<Container> mainGroups;
+	std::vector<Container> pendGroups;
+	Container stragglerGroup;
+	bool hasStragglerGroup;
+	Container remainder;
+	extractGroups(container, halfSize, mainGroups, pendGroups,
+		stragglerGroup, hasStragglerGroup, remainder);
 
-    if (!pendGroups.empty())
-        mainGroups.insert(mainGroups.begin(), pendGroups[0]);
+	if (!pendGroups.empty())
+		mainGroups.insert(mainGroups.begin(), pendGroups[0]);
 
-    insertPendGroups(mainGroups, pendGroups, numPairsNow, comparison_count);
+	insertPendGroups(mainGroups, pendGroups, numPairsNow, comparison_count);
 
-    if (hasStragglerGroup)
-        binaryInsertGroup(mainGroups, stragglerGroup, mainGroups.size(), comparison_count);
+	if (hasStragglerGroup)
+		binaryInsertGroup(mainGroups, stragglerGroup, mainGroups.size(), comparison_count);
 
-    container.clear();
-    for (size_t g = 0; g < mainGroups.size(); ++g)
-        container.insert(container.end(), mainGroups[g].begin(), mainGroups[g].end());
-    container.insert(container.end(), remainder.begin(), remainder.end());
+	container.clear();
+	for (size_t g = 0; g < mainGroups.size(); ++g)
+		container.insert(container.end(), mainGroups[g].begin(), mainGroups[g].end());
+	container.insert(container.end(), remainder.begin(), remainder.end());
 
-    return halfSize;
+	return halfSize;
 }
 
 template <typename Container>
@@ -367,10 +369,10 @@ size_t PmergeMe::sort_FJMI(Container &cont)
 	for (size_t groupSize = maxGroupSize; groupSize >= 2; groupSize /= 2)
 		mergeInsertUnwindLevel<Container>(cont, groupSize, comparison_count);
 	if (start_size != cont.size())
-        throw ContainerChangedSizeException();
-    if (!verifyOrder(cont))
-        throw ContainerNotSortedException();
-    return comparison_count;
+		throw ContainerChangedSizeException();
+	if (!verifyOrder(cont))
+		throw ContainerNotSortedException();
+	return comparison_count;
 }
 
 #endif // PMERGEME_TPP

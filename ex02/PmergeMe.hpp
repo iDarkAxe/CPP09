@@ -24,8 +24,8 @@ enum debug_level
 
 namespace Color {
 	extern const bool use_color;
-    extern const char *Color_Off;
-    extern const char *Red;
+	extern const char *Color_Off;
+	extern const char *Red;
 }
 
 class PmergeMe

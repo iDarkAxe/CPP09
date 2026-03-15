@@ -51,32 +51,32 @@ PmergeMe::typeVect PmergeMe::generateJacobsthalSequence(size_t n)
 
 PmergeMe::typeVect PmergeMe::buildJacobsthalOrder(size_t size)
 {
-    typeVect order;
-    if (size == 0)
+	typeVect order;
+	if (size == 0)
 		return order;
 
-    typeVect jacob = generateJacobsthalSequence(size);
-    size_t last_pos = 1;
-    
-    for (size_t i = 2; i < jacob.size(); ++i)
-    {
-        size_t current_jacob = jacob[i];
-        size_t val = current_jacob;
-        while (val > last_pos)
-        {
-            if (val <= size)
-                order.push_back(static_cast<typeElement>(val));
-            val--;
-        }
-        last_pos = current_jacob;
-    }
-    size_t val = size;
-    while (val > last_pos)
-    {
-        order.push_back(static_cast<typeElement>(val));
-        val--;
-    }
-    return order;
+	typeVect jacob = generateJacobsthalSequence(size);
+	size_t last_pos = 1;
+	
+	for (size_t i = 2; i < jacob.size(); ++i)
+	{
+		size_t current_jacob = jacob[i];
+		size_t val = current_jacob;
+		while (val > last_pos)
+		{
+			if (val <= size)
+				order.push_back(static_cast<typeElement>(val));
+			val--;
+		}
+		last_pos = current_jacob;
+	}
+	size_t val = size;
+	while (val > last_pos)
+	{
+		order.push_back(static_cast<typeElement>(val));
+		val--;
+	}
+	return order;
 }
 
 const char *PmergeMe::ArgumentEmptyException::what() const throw()
