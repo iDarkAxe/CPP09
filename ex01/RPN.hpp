@@ -27,14 +27,16 @@ class RPN
 private:
 	std::queue<std::string>	fifo;
 	std::stack<double> result;
-
+	
+private:
+	RPN();
 	uint8_t checkArguments(std::string& item) const;
 	bool isNumber(std::string& token) const;
 	bool isOperator(std::string& token) const;
 	double makeSimpleCalc(double argLeft, std::string& sign, double argRight) const;
 
 public:
-	RPN();
+	RPN(const std::string& input, const std::string& separator);
 	~RPN();
 	RPN(const RPN &f);
 	RPN &operator=(const RPN &other);

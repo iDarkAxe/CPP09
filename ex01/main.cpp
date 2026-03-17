@@ -4,6 +4,7 @@
 
 /* Tester prototype */
 int tester(void);
+
 /* Mandatory main function */
 int main(int argc, char **argv)
 {
@@ -18,14 +19,12 @@ int main(int argc, char **argv)
 			std::cout << "Error\n";
 		return (0);
 	}
-	std::string argv_str = argv[1];
+	std::string input_string = argv[1];
 	std::string delimitor = " ";
-	RPN rpn;
 	try 
 	{
-		if (argv_str.empty())
-			throw RPN::ArgumentEmptyException();
-		rpn.store(argv_str, delimitor);
+		RPN rpn(input_string, delimitor);
+		// rpn.store(input_string, delimitor);
 		double result = rpn.calculate();
 		std::cout << std::setprecision(20) << result << std::endl;
 		rpn.trashResult();
@@ -41,6 +40,12 @@ int main(int argc, char **argv)
 }
 
 #include <limits.h>
+/**
+ * @brief Short tester for RPN
+ * NEEDS MULTIPLE DIGITS to work
+ * 
+ * @return int 
+ */
 int tester(void)
 {
 	std::vector<std::string> test_cases;
@@ -72,19 +77,17 @@ int tester(void)
 	test_cases.push_back("1.5f 3.5f +");     					// = 5
 	test_cases.push_back("10 2.5f /");                       // = 4
 	test_cases.push_back("4 20.25f *");                    // = 81
-	std::string argv_str;
+	std::string input_string;
 	std::string delimitor = " ";
-	RPN rpn;
 	try 
 	{
+	
 		while (!test_cases.empty())
 		{
-			argv_str = test_cases.back();
+			input_string = test_cases.back();
 			test_cases.pop_back();
-			if (argv_str.empty())
-				throw RPN::ArgumentEmptyException();
-			std::cout << "testing with " << argv_str << ":\n\t";
-			rpn.store(argv_str, delimitor);
+			std::cout << "Testing with " << input_string << ":\n\t";
+			RPN rpn(input_string, delimitor);
 			double result = rpn.calculate();
 			std::cout << result << std::endl;
 			rpn.trashResult();

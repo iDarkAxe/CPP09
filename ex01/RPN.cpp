@@ -8,6 +8,11 @@ RPN::RPN()
 	;
 }
 
+RPN::RPN(const std::string& input, const std::string& separator)
+{
+	this->store(input, separator);
+}
+
 RPN::~RPN()
 {
 	;
@@ -181,7 +186,7 @@ void RPN::store(const std::string& input, const std::string& separator)
 {
 	if (input.empty() || separator.empty())
 		throw ArgumentEmptyException();
-
+	this->clear();
 	size_t pos = 0;
 	size_t sep_len = separator.length();
 
@@ -272,14 +277,15 @@ double RPN::makeSimpleCalc(double argLeft, std::string& sign, double argRight) c
  */
 double RPN::calculate(void)
 {
-	std::queue<std::string> backup = this->fifo;
-	std::string token;
-	double argLeft, argRight;
-	double currentResult;
 	if (this->fifo.empty())
 		throw UseOfEmptyContainerException();
 	if (this->fifo.size() < 3)
 		throw NumberOfArgumentTooLowException();
+
+	std::queue<std::string> backup = this->fifo;
+	std::string token;
+	double argLeft, argRight;
+	double currentResult;
 	while (!this->fifo.empty()) 
 	{
 		token = getAndPop<std::string>();
