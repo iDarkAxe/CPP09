@@ -130,9 +130,9 @@ void PmergeMe::printPairs(const Container &container, size_t pairSize, size_t le
 	std::cout << "______Level " << levelOfRecursion << " with pair size " << pairSize << "______" << std::endl;
 
 	typename Container::const_iterator groupStart = container.begin();
-	for (size_t i = 0; i < pairCount; ++i)
+	for (size_t i = 1; i < pairCount + 1; ++i)
 	{
-		std::cout << i << "/" << pairCount - 1 << ": ";
+		std::cout << i << "/" << pairCount << ": ";
 		typename Container::const_iterator it = groupStart;
 		for (size_t j = 0; j < pairSize; ++j, ++it)
 		{
@@ -190,7 +190,7 @@ size_t PmergeMe::splitIntoPairsRecursive(Container &container, size_t pairSize, 
 		std::advance(groupStart, pairSize);
 	}
 
-	if (DEBUG_LEVEL >= DEBUG)
+	if (DEBUG_LEVEL >= INFO)
 		printPairs(container, pairSize, levelOfRecursion);
 	levelOfRecursion++;
 
@@ -366,8 +366,21 @@ size_t PmergeMe::sort_FJMI(Container &cont)
 	size_t maxGroupSize = splitIntoPairsRecursive<Container>(cont, 2, 0, comparison_count);
 
 	// Phase 2: merge-insertion unwinding, from largest group size down to 2
+	size_t levelOfRecursion = 0;
 	for (size_t groupSize = maxGroupSize; groupSize >= 2; groupSize /= 2)
-		mergeInsertUnwindLevel<Container>(cont, groupSize, comparison_count);
+	{
+		if (DEBUG_LEVEL >= INFO)
+		{
+			std::cout << "\n\n\nBefore:" << std::endl;
+			printPairs(cont, groupSize, levelOfRecursion);
+			mergeInsertUnwindLevel<Container>(cont, groupSize, comparison_count);
+			levelOfRecursion++;
+			std::cout << "|\nv\nAfter:" << std::endl;
+			printPairs(cont, groupSize, levelOfRecursion);
+		}
+		else
+			mergeInsertUnwindLevel<Container>(cont, groupSize, comparison_count);
+	}
 	if (start_size != cont.size())
 		throw ContainerChangedSizeException();
 	if (!verifyOrder(cont))
