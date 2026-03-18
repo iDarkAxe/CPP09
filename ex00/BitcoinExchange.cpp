@@ -93,15 +93,23 @@ void BitcoinExchange::loadDataFromFile(const std::string& filename)
 			continue;
 		if (line.size() < csv_minimalSizeOfDataPrice || line[csv_minimalSizeOfDataPrice - 2] != ',')
 		{
-			std::cout << "Error: bad input => " << line << std::endl;
+			std::cerr << "Error: bad input => " << line << std::endl;
 			throw CSVFileWronglyFormattedException();
 		}
 		presumedDate = line.substr(0, 10);
+		int year, month, day;
+		year = atoi(line.substr(0, 4).c_str());
+		month = atoi(line.substr(5, 2).c_str());
+		day = atoi(line.substr(8, 2).c_str());
+		if (!isDateValid(year, month, day))
+		{
+			std::cerr << "Data invalid but not throwing error => " << presumedDate << std::endl;
+		}
 		char *end;
 		std::string subline = line.substr(11);
 		presumedPrice = strtof(subline.c_str(), &end);
 		if (end == subline.c_str()) {
-			// std::cout << "Error : conversion invalid\n";
+			// std::cerr << "Error : conversion invalid\n";
 			continue;
 		}
 		if (this->replaceDuplicatesWithLast)
@@ -158,9 +166,9 @@ bool BitcoinExchange::isdigit_inrange(const std::string& str, size_t start, size
  */
 bool BitcoinExchange::isDateValid(int year, int month, int day) const
 {
-	if (year < 2009 || month < 1 || month > 12 || day < 1 || day > 31)
+	if (month < 1 || month > 12 || day < 1 || day > 31 || year < 0) 
 		return false;
-	if (year == 2009 && month == 1 && day < 2)
+	if (year <= 2009 && month == 1 && day < 2) // création du btc, pas de date antérieure
 		return false;
 	if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
 		return false;
@@ -199,25 +207,25 @@ bool BitcoinExchange::isLineOK(const std::string &line, float &priceValue)
 	if (line_len < ifile_minimalSizeOfDataPrice || line_len > ifile_maximalSizeOfDataPrice)
 	{
 		if (CUSTOM_ERROR_MESSAGE)
-			std::cout << "Error: line is too small or too big => " << line << std::endl;
+			std::cerr << "Error: line is too small or too big => " << line << std::endl;
 		else
-			std::cout << "Error: bad input => " << line << std::endl;
+			std::cerr << "Error: bad input => " << line << std::endl;
 		return false;
 	}
 	if (line[10] != ' ' || line[11] != '|' || line[12] != ' ')
 	{
 		if (CUSTOM_ERROR_MESSAGE)
-			std::cout << "Error: separator badly placed or missing spaces => " << line << std::endl;
+			std::cerr << "Error: separator badly placed or missing spaces => " << line << std::endl;
 		else
-			std::cout << "Error: bad input => " << line << std::endl;
+			std::cerr << "Error: bad input => " << line << std::endl;
 		return false;
 	}
 	if (!isdigit_inrange(line, 0, 4) ||	!isdigit_inrange(line, 5, 7) ||	!isdigit_inrange(line, 8, 10))
 	{
 		if (CUSTOM_ERROR_MESSAGE)
-			std::cout << "Error: Date format is not YYYY-MM-DD => " << line << std::endl;
+			std::cerr << "Error: Date format is not YYYY-MM-DD => " << line << std::endl;
 		else
-			std::cout << "Error: bad input => " << line << std::endl;
+			std::cerr << "Error: bad input => " << line << std::endl;
 		return false;
 	}
 {
@@ -228,18 +236,18 @@ bool BitcoinExchange::isLineOK(const std::string &line, float &priceValue)
 	if (!isDateValid(year, month, day))
 	{
 		if (CUSTOM_ERROR_MESSAGE)
-			std::cout << "Error: Date is not valid => " << line << std::endl;
+			std::cerr << "Error: Date is not valid => " << line << std::endl;
 		else
-			std::cout << "Error: bad input => " << line << std::endl;
+			std::cerr << "Error: bad input => " << line << std::endl;
 		return false;
 	}
 }
 	if (line[4] != '-' || line[7] != '-')
 	{
 		if (CUSTOM_ERROR_MESSAGE)
-			std::cout << "Error: bad date format => " << line << std::endl;
+			std::cerr << "Error: bad date format => " << line << std::endl;
 		else
-			std::cout << "Error: bad input => " << line << std::endl;
+			std::cerr << "Error: bad input => " << line << std::endl;
 		return false;
 	}
 {
@@ -247,18 +255,18 @@ bool BitcoinExchange::isLineOK(const std::string &line, float &priceValue)
 	std::string subline = line.substr(13);
 	priceValue = strtof(subline.c_str(), &end);
 	if (end == subline.c_str()) {
-		std::cout << "Error : conversion invalid\n";
+		std::cerr << "Error : conversion invalid\n";
 		return false;
 	}
 }
 	if (priceValue < 0)
 	{
-		std::cout << "Error: not a positive number." << std::endl;
+		std::cerr << "Error: not a positive number." << std::endl;
 		return false;
 	}
 	if (priceValue > 1000)
 	{
-		std::cout << "Error: too large a number." << std::endl;
+		std::cerr << "Error: too large a number." << std::endl;
 		return false;
 	}
 	return true;
@@ -280,7 +288,7 @@ void BitcoinExchange::makeCalculation(const BitcoinExchange &btc, const std::str
 	}
 	else
 	{
-		std::cout << "Error: date not found => " << date << std::endl;
+		std::cerr << "Error: date not found => " << date << std::endl;
 	}
 }
 

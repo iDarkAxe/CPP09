@@ -1,7 +1,6 @@
 #include <cmath>
 #include <iostream>
 
-// https://dev.to/emuminov/human-explanation-and-step-by-step-visualisation-of-the-ford-johnson-algorithm-5g91
 /**
  * @brief Formula to calculate the maximum number of comparisons needed to sort n elements with the Ford-Johnson algorithm.
  * 
